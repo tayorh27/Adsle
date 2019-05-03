@@ -6,6 +6,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 
+import com.ad.adsle.Activities.HomeActivity;
 import com.ad.adsle.Activities.LoginActivity;
 import com.ad.adsle.Db.AppData;
 
@@ -30,7 +31,7 @@ public class MainActivity extends Activity {
                     public void run() {
                         data = new AppData(MainActivity.this);
                         if(data.getLogged()){
-                            startActivity(new Intent(MainActivity.this, LoginActivity.class));
+                            startActivity(new Intent(MainActivity.this, HomeActivity.class));
                         }else {
                             startActivity(new Intent(MainActivity.this, LoginActivity.class));
                         }

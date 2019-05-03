@@ -126,9 +126,9 @@ public class LoginActivity extends AppCompatActivity {
                                                 user = document.toObject(User.class);
                                                 data.StoreUsers(user);
                                                 data.setLogged(true);
-//                                                Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
-//                                                startActivity(intent);
-//                                                finish();
+                                                Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
+                                                startActivity(intent);
+                                                finish();
                                             }
                                         }
                                     });

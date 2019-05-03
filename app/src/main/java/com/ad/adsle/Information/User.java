@@ -2,13 +2,13 @@ package com.ad.adsle.Information;
 
 public class User {
 
-    String id, name, email, number, age, gender, tag, bonus_data, referralCode, referralLink, loc_address;
+    String id, name, email, number, age, gender, tag, bonus_data, referralCode, referralLink, msgId;
 
     public User() {
 
     }
 
-    public User(String id, String name, String email, String number, String age, String gender, String tag, String bonus_data, String referralCode, String referralLink, String loc_address) {
+    public User(String id, String name, String email, String number, String age, String gender, String tag, String bonus_data, String referralCode, String referralLink, String msgId) {
         this.id = id;
         this.name = name;
         this.email = email;
@@ -19,7 +19,7 @@ public class User {
         this.bonus_data = bonus_data;
         this.referralCode = referralCode;
         this.referralLink = referralLink;
-        this.loc_address = loc_address;
+        this.msgId = msgId;
     }
 
     public String getId() {
@@ -54,8 +54,28 @@ public class User {
         return referralLink;
     }
 
+    public String getMsgId() {
+        return msgId;
+    }
+
+    public void setMsgId(String msgId) {
+        this.msgId = msgId;
+    }
+
     public String getAge() {
         return age;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public void setReferralCode(String referralCode) {
+        this.referralCode = referralCode;
+    }
+
+    public void setReferralLink(String referralLink) {
+        this.referralLink = referralLink;
     }
 
     public void setAge(String age) {
@@ -76,10 +96,6 @@ public class User {
 
     public void setTag(String tag) {
         this.tag = tag;
-    }
-
-    public String getLoc_address() {
-        return loc_address;
     }
 
 

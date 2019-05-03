@@ -14,6 +14,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -23,19 +24,28 @@ import android.widget.Toast;
 
 import com.ad.adsle.Db.AppData;
 import com.ad.adsle.Information.AppDetail;
+import com.ad.adsle.Information.User;
 import com.ad.adsle.R;
+import com.ad.adsle.Util.LocationGetterBackgroundTask;
 import com.ad.adsle.Util.LocationHelper;
 import com.ad.adsle.Util.Utils;
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.github.bijoysingh.starter.util.PermissionManager;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.dynamiclinks.DynamicLink;
 import com.google.firebase.dynamiclinks.FirebaseDynamicLinks;
 import com.google.firebase.dynamiclinks.PendingDynamicLinkData;
+import com.google.firebase.dynamiclinks.ShortDynamicLink;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.tsongkha.spinnerdatepicker.DatePicker;
 import com.tsongkha.spinnerdatepicker.DatePickerDialog;
 import com.tsongkha.spinnerdatepicker.SpinnerDatePickerDialogBuilder;
@@ -43,7 +53,10 @@ import com.tsongkha.spinnerdatepicker.SpinnerDatePickerDialogBuilder;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Random;
 
 import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper;
 
@@ -57,9 +70,9 @@ public class SignupActivity extends AppCompatActivity implements GoogleApiClient
 
     AppData data;
 
-    String email, password, name, number, referral, age, gender;
+    String email, password, name, number, referral, age, gender, refLink;
     //CallbackManager mCallbackManager;
-    String id = "", refNumber = "", loc_address = "", tag = "";
+    String id = "", refEmail = "", refCode = "", tag = "";
     //    BottomSheetDialog dialog;
 //    TextView bsClose;
 //    Button bsFacebook, bsGoogle;
@@ -148,6 +161,7 @@ public class SignupActivity extends AppCompatActivity implements GoogleApiClient
                 tvR.setVisibility(View.GONE);
                 fullname.setText("Company Name");
                 tag = "advertiser";
+                utils.error("Address = ");
             }
         });
 
@@ -251,7 +265,18 @@ public class SignupActivity extends AppCompatActivity implements GoogleApiClient
                 auth.createUserWithEmailAndPassword(email, password).addOnSuccessListener(new OnSuccessListener<AuthResult>() {
                     @Override
                     public void onSuccess(AuthResult authResult) {
-
+                        Random r = new Random();
+                        refCode = r.nextInt(9) + name.substring(0, 1) + r.nextInt(9) + email.substring(0, 1) + number.substring(number.length() - 1);
+                        BuildDynamicLink(refCode, email);
+                        User user = new User("", name, email, number, "", gender, tag, "52428800", refCode, "", data.getRegistrationToken());
+                        if (tag.contentEquals("user")) {
+                            Calendar calendar = Calendar.getInstance();
+                            int year_now = calendar.get(Calendar.YEAR);
+                            int selected_year = Integer.parseInt(age.split("-")[2]);
+                            int user_age = year_now - selected_year;
+                            user.setAge(String.valueOf(user_age));
+                        }
+                        AfterAccountCreation(user);
                     }
                 }).addOnFailureListener(new OnFailureListener() {
                     @Override
@@ -265,17 +290,34 @@ public class SignupActivity extends AppCompatActivity implements GoogleApiClient
         });
         GetAllApps();
         ReceiveDeepUrl();
+        checkPermissions();
+//        if (locationHelper.checkPlayServices()) {
+//            // Building the GoogleApi client
+//            locationHelper.buildGoogleApiClient();
+//        }
+        //getCurrentLocation();
+    }
+
+    private void checkPermissions() {
         PermissionManager pm = new PermissionManager(SignupActivity.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION});
         if (!pm.hasAllPermissions()) {
             pm.requestPermissions(345);
         } else {
-//            GetUserLocation();
+            new LocationGetterBackgroundTask().execute();
         }
-        if (locationHelper.checkPlayServices()) {
-            // Building the GoogleApi client
-            locationHelper.buildGoogleApiClient();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == 345) {
+            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                new LocationGetterBackgroundTask().execute();
+            } else {
+                utils.error("Please allow access to location to continue. Your location is not shared with any third party.");
+                checkPermissions();
+            }
         }
-        getCurrentLocation();
     }
 
     private void getCurrentLocation() {
@@ -348,7 +390,7 @@ public class SignupActivity extends AppCompatActivity implements GoogleApiClient
                     deepLink = pendingDynamicLinkData.getLink();
                     String refCode = deepLink.getQueryParameter("ref_code");
                     dataToGive = deepLink.getQueryParameter("data");
-                    refNumber = deepLink.getQueryParameter("number");
+                    refEmail = deepLink.getQueryParameter("email");
                     inputReferral.setText(refCode);
                 }
             }
@@ -377,10 +419,42 @@ public class SignupActivity extends AppCompatActivity implements GoogleApiClient
         }
     }
 
+    private void BuildDynamicLink(String ref, String email) {
+        Task<ShortDynamicLink> shortLinkTask = FirebaseDynamicLinks.getInstance().createDynamicLink()
+                .setLink(Uri.parse("http://adsle.com?ref_code=" + ref + "&email=" + email + "&data=52428800"))
+                .setDynamicLinkDomain("xpgf2.app.goo.gl")
+                .setAndroidParameters(new DynamicLink.AndroidParameters.Builder("com.ad.adsle")
+                        .build())
+                .setGoogleAnalyticsParameters(new DynamicLink.GoogleAnalyticsParameters.Builder()
+                        .setSource("adsle")
+                        .setMedium("social")
+                        .setCampaign("sharing")
+                        .build())
+                .setSocialMetaTagParameters(new DynamicLink.SocialMetaTagParameters.Builder()
+                        .setTitle("Adsle App")
+                        .setDescription("Get data ")
+                        .build())
+                .buildShortDynamicLink().addOnCompleteListener(new OnCompleteListener<ShortDynamicLink>() {
+                    @Override
+                    public void onComplete(@NonNull Task<ShortDynamicLink> task) {
+                        if (task.isSuccessful()) {
+                            refLink = task.getResult().getShortLink().toString();
+                        } else {
+                            Log.e("refLinkError", "error" + task.getException());
+                        }
+                    }
+                });
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+    }
+
     @Override
     protected void onResume() {
         super.onResume();
-        locationHelper.checkPlayServices();
+        //locationHelper.checkPlayServices();
     }
 
     /**
@@ -388,25 +462,51 @@ public class SignupActivity extends AppCompatActivity implements GoogleApiClient
      */
     @Override
     public void onConnectionFailed(ConnectionResult result) {
-        Log.i("Connection failed:", " ConnectionResult.getErrorCode() = "
-                + result.getErrorCode());
+        //Log.i("Connection failed:", " ConnectionResult.getErrorCode() = "+ result.getErrorCode());
     }
 
     @Override
     public void onConnected(Bundle arg0) {
-
         // Once connected with google api, get the location
-        mLastLocation = locationHelper.getLocation();
+        //mLastLocation = locationHelper.getLocation();
     }
 
     @Override
     public void onConnectionSuspended(int arg0) {
-        locationHelper.connectApiClient();
+        //locationHelper.connectApiClient();
     }
 
     @Override
     public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
         String selected_date = dayOfMonth + "-" + (monthOfYear + 1) + "-" + year;
         inputDateBirth.setText(selected_date);
+    }
+
+    private void GiveUserData() {
+        if (!TextUtils.isEmpty(referral) || !TextUtils.isEmpty(refEmail)) {
+            final long mb = Long.parseLong(dataToGive);
+            FirebaseFirestore db = FirebaseFirestore.getInstance();
+            DocumentReference docRef = db.collection("users").document(refEmail).collection("user-data").document("signup");
+            docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                @Override
+                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                    if(task.isSuccessful()){
+                        Map<String, Object> snapshot = task.getResult().getData();
+                        long data = Long.parseLong(String.valueOf(snapshot.get("bonus_data")));
+                        data = data + mb;
+                        Map<String, Object> param = new HashMap<>();
+                        param.put("bonus_data", String.valueOf(data));
+                        docRef.update(param);
+                    }
+                }
+            });
+        }
+    }
+
+    private void AfterAccountCreation(User user) {
+        user.setReferralLink(refLink);
+
+
+        GiveUserData();
     }
 }

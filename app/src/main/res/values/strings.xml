@@ -32,7 +32,6 @@
     <string name="forgot_password_msg">We just need your registered Email Address to send you password reset instructions.</string>
     <string name="payment_msg">Please note, your card information is not stored with us and also, you will be charged ₦1 for card verification.</string>
     <string name="recharge_msg">Please note, your card information is not stored with us.</string>
-    <string name="title_activity_home">Dashboard</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="nav_header_title">Android Studio</string>
@@ -58,4 +57,12 @@
     </string-array>
     <string name="appwidget_text">EXAMPLE</string>
     <string name="add_widget">Add widget</string>
+    <string name="title_activity_home">Home</string>
+
+    <string name="menu_home">Home</string>
+    <string name="menu_gallery">Gallery</string>
+    <string name="menu_slideshow">Slideshow</string>
+    <string name="menu_tools">Tools</string>
+    <string name="menu_share">Share</string>
+    <string name="menu_send">Send</string>
 </resources>

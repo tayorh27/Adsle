@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 
 import com.ad.adsle.Activities.LoginActivity;
+import com.ad.adsle.Information.LocationDetails;
 import com.ad.adsle.Information.User;
 import com.google.firebase.auth.FirebaseAuth;
 
@@ -17,6 +18,16 @@ public class AppData {
     public AppData(Context context) {
         this.context = context;
         prefs = context.getSharedPreferences("adsle_data", 0);
+    }
+
+    public void setRegistrationToken(String token){
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putString("mToken", token);
+        editor.apply();
+    }
+
+    public String getRegistrationToken() {
+        return prefs.getString("mToken", "");
     }
 
     public void setLogged(boolean logged) {
@@ -51,7 +62,7 @@ public class AppData {
         editor.putString("bonus_data", user.getBonus_data());
         editor.putString("referralCode", user.getReferralCode());
         editor.putString("referralLink", user.getReferralLink());
-        editor.putString("loc_address", user.getLoc_address());
+        editor.putString("msgId", user.getMsgId());
         editor.apply();
     }
 
@@ -67,7 +78,29 @@ public class AppData {
                 prefs.getString("bonus_data", ""),
                 prefs.getString("referralCode", ""),
                 prefs.getString("referralLink", ""),
-                prefs.getString("loc_address", "")
+                prefs.getString("msgId", "")
+        );
+    }
+
+    public void StoreLocationDetails(LocationDetails locationDetails) {
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putString("city", locationDetails.getCity());
+        editor.putString("area", locationDetails.getArea());
+        editor.putString("inside_area", locationDetails.getInside_area());
+        editor.putString("formatted_address", locationDetails.getFormatted_address());
+        editor.putString("country", locationDetails.getCountry());
+        editor.putString("latlng", locationDetails.getLatlng());
+        editor.apply();
+    }
+
+    public LocationDetails getLocationDetails() {
+        return new LocationDetails(
+                prefs.getString("city", ""),
+                prefs.getString("area", ""),
+                prefs.getString("inside_area", ""),
+                prefs.getString("formatted_address", ""),
+                prefs.getString("country", ""),
+                prefs.getString("latlng", "")
         );
     }
 
