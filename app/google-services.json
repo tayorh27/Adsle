@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "391588757988",
+    "firebase_url": "https://adsle-ce462.firebaseio.com",
+    "project_id": "adsle-ce462",
+    "storage_bucket": "adsle-ce462.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:391588757988:android:1f1951cd8ee2e1ca",
+        "android_client_info": {
+          "package_name": "com.ad.adsle"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "391588757988-8fue3f144bm4fnvigcfbn0qehsn3vu4i.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCc5mJtCQBVVM4MqnTVhEV0Y9EMdafErKY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "391588757988-8fue3f144bm4fnvigcfbn0qehsn3vu4i.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
