@@ -4,10 +4,19 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 
+import androidx.annotation.NonNull;
+
 import com.ad.adsle.Activities.LoginActivity;
+import com.ad.adsle.Information.DeviceDetails;
 import com.ad.adsle.Information.LocationDetails;
 import com.ad.adsle.Information.User;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.util.ArrayList;
 
 public class AppData {
 
@@ -20,7 +29,7 @@ public class AppData {
         prefs = context.getSharedPreferences("adsle_data", 0);
     }
 
-    public void setRegistrationToken(String token){
+    public void setRegistrationToken(String token) {
         SharedPreferences.Editor editor = prefs.edit();
         editor.putString("mToken", token);
         editor.apply();
@@ -56,13 +65,15 @@ public class AppData {
         editor.putString("name", user.getName());
         editor.putString("email", user.getEmail());
         editor.putString("number", user.getNumber());
-        editor.putString("age", user.getAge());
+        editor.putInt("age", user.getAge());
         editor.putString("gender", user.getGender());
+        editor.putString("religion", user.getReligion());
         editor.putString("tag", user.getTag());
         editor.putString("bonus_data", user.getBonus_data());
         editor.putString("referralCode", user.getReferralCode());
         editor.putString("referralLink", user.getReferralLink());
         editor.putString("msgId", user.getMsgId());
+        editor.putString("deviceId", user.getDeviceId());
         editor.apply();
     }
 
@@ -72,13 +83,41 @@ public class AppData {
                 prefs.getString("name", ""),
                 prefs.getString("email", ""),
                 prefs.getString("number", ""),
-                prefs.getString("age", ""),
+                prefs.getInt("age", 0),
                 prefs.getString("gender", ""),
+                prefs.getString("religion", ""),
                 prefs.getString("tag", ""),
                 prefs.getString("bonus_data", ""),
                 prefs.getString("referralCode", ""),
                 prefs.getString("referralLink", ""),
-                prefs.getString("msgId", "")
+                prefs.getString("msgId", ""),
+                prefs.getString("deviceId", "")
+        );
+    }
+
+    public void StoreDeviceDetails(DeviceDetails deviceDetails) {
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putString("Release_Build_Version", deviceDetails.getRelease_build_version());
+        editor.putString("Build_Version_Code_Name", deviceDetails.getBuild_version_code_name());
+        editor.putString("Manufacturer", deviceDetails.getManufacturer());
+        editor.putString("Model", deviceDetails.getModel());
+        editor.putString("Product", deviceDetails.getProduct());
+        editor.putString("Display_Version", deviceDetails.getDisplay_version());
+        editor.putString("Os_Version", deviceDetails.getOs_version());
+        editor.putString("SDK_Version", deviceDetails.getSdk_version());
+        editor.apply();
+    }
+
+    public DeviceDetails getDeviceDetails() {
+        return new DeviceDetails(
+                prefs.getString("Release_Build_Version", ""),
+                prefs.getString("Build_Version_Code_Name", ""),
+                prefs.getString("Manufacturer", ""),
+                prefs.getString("Model", ""),
+                prefs.getString("Product", ""),
+                prefs.getString("Display_Version", ""),
+                prefs.getString("Os_Version", ""),
+                prefs.getString("SDK_Version", "")
         );
     }
 

@@ -2,24 +2,27 @@ package com.ad.adsle.Information;
 
 public class User {
 
-    String id, name, email, number, age, gender, tag, bonus_data, referralCode, referralLink, msgId;
+    String id, name, email, number, gender, religion, tag, bonus_data, referralCode, referralLink, msgId, deviceId;
+    int age;
 
     public User() {
 
     }
 
-    public User(String id, String name, String email, String number, String age, String gender, String tag, String bonus_data, String referralCode, String referralLink, String msgId) {
+    public User(String id, String name, String email, String number, int age, String gender, String religion, String tag, String bonus_data, String referralCode, String referralLink, String msgId, String deviceId) {
         this.id = id;
         this.name = name;
         this.email = email;
         this.number = number;
         this.age = age;
         this.gender = gender;
+        this.religion = religion;
         this.tag = tag;
         this.bonus_data = bonus_data;
         this.referralCode = referralCode;
         this.referralLink = referralLink;
         this.msgId = msgId;
+        this.deviceId = deviceId;
     }
 
     public String getId() {
@@ -62,7 +65,23 @@ public class User {
         this.msgId = msgId;
     }
 
-    public String getAge() {
+    public String getDeviceId() {
+        return deviceId;
+    }
+
+    public void setDeviceId(String deviceId) {
+        this.deviceId = deviceId;
+    }
+
+    public String getReligion() {
+        return religion;
+    }
+
+    public void setReligion(String religion) {
+        this.religion = religion;
+    }
+
+    public int getAge() {
         return age;
     }
 
@@ -78,7 +97,7 @@ public class User {
         this.referralLink = referralLink;
     }
 
-    public void setAge(String age) {
+    public void setAge(int age) {
         this.age = age;
     }
 

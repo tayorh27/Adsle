@@ -6,6 +6,10 @@ public class AppDetail {
 
     public String label;
     public String name;
-    public Drawable icon;
+    public String icon;
+
+    public AppDetail() {
+
+    }
 
 }

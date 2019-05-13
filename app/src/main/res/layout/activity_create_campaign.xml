@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#fff"
+    android:focusableInTouchMode="true"
+    tools:context=".Activities.CreateCampaignActivity">
+
+    <com.wajahatkarim3.easyflipview.EasyFlipView
+        android:id="@+id/easyFlipView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:autoFlipBack="false"
+        app:autoFlipBackTime="1000"
+        app:flipDuration="2000"
+        app:flipEnabled="true"
+        app:flipFrom="front"
+        app:flipOnTouch="false"
+        app:flipType="vertical">
+
+        <!-- Back Layout Goes Here -->
+        <include layout="@layout/flip_back_view" />
+
+        <!-- Front Layout Goes Here -->
+        <include layout="@layout/flip_front_view" />
+
+    </com.wajahatkarim3.easyflipview.EasyFlipView>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

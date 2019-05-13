@@ -32,23 +32,23 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
-                    android:background="@color/colorPrimaryDark"
+                    android:layout_marginRight="10dp"
+                    android:layout_weight="50"
+                    android:background="@color/fabColor"
                     android:text="USER"
                     android:textColor="@android:color/white"
-                    android:layout_marginRight="10dp"
-                    android:textStyle="bold"
-                    android:layout_weight="50"/>
+                    android:textStyle="bold" />
 
                 <Button
                     android:id="@+id/selection_two"
                     style="?android:textAppearanceSmall"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
                     android:layout_marginLeft="10dp"
+                    android:layout_marginTop="16dp"
+                    android:layout_weight="50"
                     android:background="@color/colorAccent"
                     android:text="ADVERTISER"
-                    android:layout_weight="50"
                     android:textColor="@android:color/white"
                     android:textStyle="bold" />
 
@@ -132,14 +132,15 @@
                 android:textColor="@color/colorPrimaryDark"
                 android:textSize="16sp" />
 
-            <EditText
+            <Button
                 android:id="@+id/dob"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="40dp"
                 android:background="@drawable/editbg"
+                android:drawableRight="@drawable/ic_arrow_drop_down_black_24dp"
+                android:gravity="start"
                 android:hint="01-12-1990"
                 android:inputType="text"
-                android:drawableRight="@drawable/ic_arrow_drop_down_black_24dp"
                 android:maxLines="1"
                 android:padding="10dp"
                 android:singleLine="true"
@@ -156,18 +157,35 @@
                 android:textColor="@color/colorPrimaryDark"
                 android:textSize="16sp" />
 
-            <EditText
+            <Spinner
                 android:id="@+id/gender"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@drawable/editbg"
-                android:hint="Gender"
-                android:editable="false"
-                android:inputType="text"
-                android:drawableRight="@drawable/ic_arrow_drop_down_black_24dp"
-                android:maxLines="1"
+                android:entries="@array/gender"
                 android:padding="10dp"
-                android:singleLine="true"
+                android:spinnerMode="dialog"
+                android:textColor="@android:color/black"
+                android:textSize="16sp" />
+
+            <TextView
+                android:id="@+id/tvReligion"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="25dp"
+                android:paddingBottom="5dp"
+                android:text="Religion"
+                android:textColor="@color/colorPrimaryDark"
+                android:textSize="16sp" />
+
+            <Spinner
+                android:id="@+id/religion"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/editbg"
+                android:entries="@array/religion"
+                android:padding="10dp"
+                android:spinnerMode="dialog"
                 android:textColor="@android:color/black"
                 android:textSize="16sp" />
 

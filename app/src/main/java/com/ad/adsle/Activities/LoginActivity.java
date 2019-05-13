@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -22,9 +23,13 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QuerySnapshot;
+
+import java.util.ArrayList;
 
 import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper;
 
@@ -107,9 +112,10 @@ public class LoginActivity extends AppCompatActivity {
                                 // If sign in fails, display a message to the user. If sign in succeeds
                                 // the auth state listener will be notified and logic to handle the
                                 // signed in user can be handled in the listener.
-                                utils.dismissDialog();
+                                //utils.dismissDialog();
                                 if (!task.isSuccessful()) {
                                     // there was an error
+                                    utils.dismissDialog();
                                     if (password.length() < 4) {
                                         inputPassword.setError(getString(R.string.minimum_password));
                                     } else {
@@ -117,49 +123,56 @@ public class LoginActivity extends AppCompatActivity {
                                     }
                                 } else {
                                     FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+
                                     DocumentReference docRef = db.collection("users").document(email).collection("user-data").document("signup");
                                     docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                                         @Override
                                         public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                                            if(task.isSuccessful()){
+                                            if (task.isSuccessful()) {
                                                 DocumentSnapshot document = task.getResult();
                                                 user = document.toObject(User.class);
                                                 data.StoreUsers(user);
                                                 data.setLogged(true);
-                                                Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
-                                                startActivity(intent);
-                                                finish();
+
+                                                FirebaseFirestore dbI = FirebaseFirestore.getInstance();
+                                                dbI.collection("users").document(email).collection("user-data").document("interests").get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                                                    @Override
+                                                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                                                        if (task.isSuccessful()) {
+                                                            ArrayList<String> interests = (ArrayList<String>) task.getResult().get("data");
+                                                            if (interests.size() > 0) {
+                                                                data.setInterestSelected(true);
+                                                            }
+                                                            utils.dismissDialog();
+                                                            if (data.getInterestSelected()) {
+                                                                Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
+                                                                startActivity(intent);
+                                                                finish();
+                                                            } else {
+                                                                Intent intent = new Intent(LoginActivity.this, InterestActivity.class);
+                                                                startActivity(intent);
+                                                                finish();
+                                                            }
+                                                        } else {
+                                                            errorOccurred();
+                                                        }
+                                                    }
+                                                });
+                                            } else {
+                                                errorOccurred();
                                             }
                                         }
                                     });
-//                                    DatabaseReference ref = FirebaseDatabase.getInstance().getReference("genie/users/" + email.replace(".", ",") + "/signup");
-//                                    ref.addValueEventListener(new ValueEventListener() {
-//                                        @Override
-//                                        public void onDataChange(DataSnapshot dataSnapshot) {
-//                                            user = dataSnapshot.getValue(User.class);
-//                                            //Log.e("user", user.getName());
-//                                            data.StoreUsers(user);
-//                                            if (!data.getAddedPayment()) {
-//                                                startActivity(new Intent(LoginActivity.this, HomeActivity.class));
-//                                                finish();
-//                                            } else {
-//                                                Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
-//                                                startActivity(intent);
-//                                                finish();
-//                                            }
-//                                        }
-//
-//                                        @Override
-//                                        public void onCancelled(DatabaseError databaseError) {
-//
-//                                        }
-//                                    });
-
-
                                 }
                             }
                         });
             }
         });
+    }
+
+    private void errorOccurred() {
+        utils.dismissDialog();
+        utils.error("Something went wrong. Try again.");
     }
 }

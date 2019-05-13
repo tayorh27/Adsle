@@ -1,56 +1,63 @@
 package com.ad.adsle.Activities;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.location.Address;
-import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.Log;
-import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+
 import com.ad.adsle.Db.AppData;
 import com.ad.adsle.Information.AppDetail;
+import com.ad.adsle.Information.DeviceDetails;
+import com.ad.adsle.Information.LocationDetails;
 import com.ad.adsle.Information.User;
 import com.ad.adsle.R;
 import com.ad.adsle.Util.LocationGetterBackgroundTask;
-import com.ad.adsle.Util.LocationHelper;
 import com.ad.adsle.Util.Utils;
 import com.afollestad.materialdialogs.MaterialDialog;
+import com.an.deviceinfo.device.model.Device;
+import com.an.deviceinfo.device.model.Network;
+import com.an.deviceinfo.location.DeviceLocation;
+import com.an.deviceinfo.location.LocationInfo;
 import com.github.bijoysingh.starter.util.PermissionManager;
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.dynamiclinks.DynamicLink;
 import com.google.firebase.dynamiclinks.FirebaseDynamicLinks;
 import com.google.firebase.dynamiclinks.PendingDynamicLinkData;
 import com.google.firebase.dynamiclinks.ShortDynamicLink;
+import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.firebase.iid.InstanceIdResult;
 import com.tsongkha.spinnerdatepicker.DatePicker;
 import com.tsongkha.spinnerdatepicker.DatePickerDialog;
 import com.tsongkha.spinnerdatepicker.SpinnerDatePickerDialogBuilder;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -60,43 +67,27 @@ import java.util.Random;
 
 import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper;
 
-public class SignupActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener, DatePickerDialog.OnDateSetListener {
+public class SignupActivity extends AppCompatActivity implements DatePickerDialog.OnDateSetListener {
 
-    private EditText inputEmail, inputPassword, inputFullName, inputNumber, inputReferral, inputDateBirth, inputGender;
-    TextView whomRef, fullname, tvD, tvG, tvR;
+    private EditText inputEmail, inputPassword, inputFullName, inputNumber, inputReferral;
+    Button inputDateBirth;
+    Spinner inputGender, inputReligion;
+    TextView whomRef, fullname, tvD, tvG, tvR, tvRe;
     private Button btnSignIn, btnSignUp, btnResetPassword, btnUser, btnAdvertiser;
     private ProgressBar progressBar;
 
     AppData data;
 
-    String email, password, name, number, referral, age, gender, refLink;
+    String email, password, name, number, referral, age, gender, religion, refLink;
     //CallbackManager mCallbackManager;
-    String id = "", refEmail = "", refCode = "", tag = "";
-    //    BottomSheetDialog dialog;
-//    TextView bsClose;
-//    Button bsFacebook, bsGoogle;
-//    GoogleApiClient mGoogleApiClient;
-//    LoginButton loginButton;
-//    ProfileTracker profileTracker;
-//    String photo = "";
+    String id = "", refEmail = "", refCode = "", tag = "user";
     boolean isExist = false;
     FirebaseAuth auth;
     Utils utils;
     String dataToGive = "";
     private PackageManager manager;
-    private List<AppDetail> apps;
-
-    //protected GeoDataClient mGeoDataClient;
-    //protected PlaceDetectionClient mPlaceDetectionClient;
-
-    private Location mLastLocation;
-
-    double latitude;
-    double longitude;
-
-    LocationHelper locationHelper;
-
+    private ArrayList<AppDetail> apps;
+    boolean isLinkDone = false;
 
     @Override
     protected void attachBaseContext(Context newBase) {
@@ -112,7 +103,6 @@ public class SignupActivity extends AppCompatActivity implements GoogleApiClient
         auth = FirebaseAuth.getInstance();
         data = new AppData(SignupActivity.this);
         utils = new Utils(SignupActivity.this);
-        locationHelper = new LocationHelper(this);
         btnSignIn = findViewById(R.id.sign_in_button);
         btnSignUp = findViewById(R.id.sign_up_button);
         inputEmail = findViewById(R.id.email);
@@ -122,10 +112,12 @@ public class SignupActivity extends AppCompatActivity implements GoogleApiClient
         inputReferral = findViewById(R.id.refCode);
         inputDateBirth = findViewById(R.id.dob);
         inputGender = findViewById(R.id.gender);
+        inputReligion = findViewById(R.id.religion);
         whomRef = findViewById(R.id.referCoder);
         tvD = findViewById(R.id.tvDob);
         tvG = findViewById(R.id.tvGender);
         tvR = findViewById(R.id.tvReferral);
+        tvRe = findViewById(R.id.tvReligion);
         fullname = findViewById(R.id.tvFullname);
         progressBar = findViewById(R.id.progressBar);
         btnResetPassword = findViewById(R.id.btn_reset_password);
@@ -135,14 +127,16 @@ public class SignupActivity extends AppCompatActivity implements GoogleApiClient
         btnUser.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                btnUser.setBackgroundResource(R.color.colorPrimaryDark);
+                btnUser.setBackgroundResource(R.color.fabColor);
                 btnAdvertiser.setBackgroundResource(R.color.colorAccent);
                 inputDateBirth.setVisibility(View.VISIBLE);
                 inputGender.setVisibility(View.VISIBLE);
+                inputReligion.setVisibility(View.VISIBLE);
                 inputReferral.setVisibility(View.VISIBLE);
                 tvD.setVisibility(View.VISIBLE);
                 tvG.setVisibility(View.VISIBLE);
                 tvR.setVisibility(View.VISIBLE);
+                tvRe.setVisibility(View.VISIBLE);
                 fullname.setText("Full Name");
                 tag = "user";
             }
@@ -151,17 +145,18 @@ public class SignupActivity extends AppCompatActivity implements GoogleApiClient
         btnAdvertiser.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                btnAdvertiser.setBackgroundResource(R.color.colorPrimaryDark);
+                btnAdvertiser.setBackgroundResource(R.color.fabColor);
                 btnUser.setBackgroundResource(R.color.colorAccent);
                 inputDateBirth.setVisibility(View.GONE);
                 inputGender.setVisibility(View.GONE);
+                inputReligion.setVisibility(View.GONE);
                 inputReferral.setVisibility(View.GONE);
                 tvD.setVisibility(View.GONE);
                 tvG.setVisibility(View.GONE);
                 tvR.setVisibility(View.GONE);
+                tvRe.setVisibility(View.GONE);
                 fullname.setText("Company Name");
                 tag = "advertiser";
-                utils.error("Address = ");
             }
         });
 
@@ -182,23 +177,41 @@ public class SignupActivity extends AppCompatActivity implements GoogleApiClient
             }
         });
 
-        inputGender.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                new MaterialDialog.Builder(SignupActivity.this)
-                        .cancelable(false)
-                        .canceledOnTouchOutside(false)
-                        .title("Select Gender")
-                        .items(R.array.gender)
-                        .itemsCallbackSingleChoice(0, new MaterialDialog.ListCallbackSingleChoice() {
-                            @Override
-                            public boolean onSelection(MaterialDialog dialog, View itemView, int which, CharSequence text) {
-                                inputGender.setText(text.toString());
-                                return true;
-                            }
-                        }).show();
-            }
-        });
+//        inputGender.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                new MaterialDialog.Builder(SignupActivity.this)
+//                        .cancelable(false)
+//                        .canceledOnTouchOutside(false)
+//                        .title("Select Gender")
+//                        .items(R.array.gender)
+//                        .itemsCallbackSingleChoice(0, new MaterialDialog.ListCallbackSingleChoice() {
+//                            @Override
+//                            public boolean onSelection(MaterialDialog dialog, View itemView, int which, CharSequence text) {
+//                                inputGender.setText(text.toString());
+//                                return true;
+//                            }
+//                        }).show();
+//            }
+//        });
+//
+//        inputReligion.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                new MaterialDialog.Builder(SignupActivity.this)
+//                        .cancelable(false)
+//                        .canceledOnTouchOutside(false)
+//                        .title("Select Religion")
+//                        .items(R.array.religion)
+//                        .itemsCallbackSingleChoice(0, new MaterialDialog.ListCallbackSingleChoice() {
+//                            @Override
+//                            public boolean onSelection(MaterialDialog dialog, View itemView, int which, CharSequence text) {
+//                                inputReligion.setText(text.toString());
+//                                return true;
+//                            }
+//                        }).show();
+//            }
+//        });
 
         btnResetPassword.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -218,16 +231,20 @@ public class SignupActivity extends AppCompatActivity implements GoogleApiClient
             @Override
             public void onClick(View v) {
 
+                String[] _genders = getResources().getStringArray(R.array.gender);
+                String[] _religions = getResources().getStringArray(R.array.religion);
+
                 email = inputEmail.getText().toString().trim();
                 password = inputPassword.getText().toString().trim();
                 name = inputFullName.getText().toString().trim();
                 number = inputNumber.getText().toString().trim();
                 referral = inputReferral.getText().toString().trim();
                 age = inputDateBirth.getText().toString();
-                gender = inputGender.getText().toString().trim();
+                gender = _genders[inputGender.getSelectedItemPosition()];
+                religion = _religions[inputReligion.getSelectedItemPosition()];
 
-                if (TextUtils.isEmpty(name) || !name.contains(" ")) {
-                    Toast.makeText(getApplicationContext(), "Enter a full name!", Toast.LENGTH_SHORT).show();
+                if (TextUtils.isEmpty(name)) {
+                    Toast.makeText(getApplicationContext(), (tag.contentEquals("user")) ? "Enter a full name!" : "Enter company name!", Toast.LENGTH_SHORT).show();
                     return;
                 }
 
@@ -241,14 +258,21 @@ public class SignupActivity extends AppCompatActivity implements GoogleApiClient
                     return;
                 }
 
-                if (TextUtils.isEmpty(age)) {
-                    Toast.makeText(getApplicationContext(), "Enter date of birth!", Toast.LENGTH_SHORT).show();
-                    return;
-                }
+                if (tag.contentEquals("user")) {
+                    if (TextUtils.isEmpty(age)) {
+                        Toast.makeText(getApplicationContext(), "Enter date of birth!", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
 
-                if (TextUtils.isEmpty(gender)) {
-                    Toast.makeText(getApplicationContext(), "Select gender!", Toast.LENGTH_SHORT).show();
-                    return;
+                    if (TextUtils.isEmpty(gender)) {
+                        Toast.makeText(getApplicationContext(), "Select gender!", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    if (TextUtils.isEmpty(religion)) {
+                        Toast.makeText(getApplicationContext(), "Select religion!", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
                 }
 
                 if (TextUtils.isEmpty(password)) {
@@ -262,47 +286,67 @@ public class SignupActivity extends AppCompatActivity implements GoogleApiClient
                 }
 
                 utils.displayDialog("Please wait...");
-                auth.createUserWithEmailAndPassword(email, password).addOnSuccessListener(new OnSuccessListener<AuthResult>() {
-                    @Override
-                    public void onSuccess(AuthResult authResult) {
-                        Random r = new Random();
-                        refCode = r.nextInt(9) + name.substring(0, 1) + r.nextInt(9) + email.substring(0, 1) + number.substring(number.length() - 1);
-                        BuildDynamicLink(refCode, email);
-                        User user = new User("", name, email, number, "", gender, tag, "52428800", refCode, "", data.getRegistrationToken());
-                        if (tag.contentEquals("user")) {
-                            Calendar calendar = Calendar.getInstance();
-                            int year_now = calendar.get(Calendar.YEAR);
-                            int selected_year = Integer.parseInt(age.split("-")[2]);
-                            int user_age = year_now - selected_year;
-                            user.setAge(String.valueOf(user_age));
+                if (auth.getCurrentUser() == null) {
+                    auth.createUserWithEmailAndPassword(email, password).addOnSuccessListener(new OnSuccessListener<AuthResult>() {
+                        @Override
+                        public void onSuccess(AuthResult authResult) {
+                            AfterSignUpOperations();
                         }
-                        AfterAccountCreation(user);
-                    }
-                }).addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        utils.dismissDialog();
-                        utils.error("An error occurred. Try again. ");
-                    }
-                });
-
+                    }).addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            utils.dismissDialog();
+                            utils.error("An error occurred. Try again. ");
+                        }
+                    });
+                } else {
+                    AfterSignUpOperations();
+                }
             }
         });
         GetAllApps();
         ReceiveDeepUrl();
         checkPermissions();
-//        if (locationHelper.checkPlayServices()) {
-//            // Building the GoogleApi client
-//            locationHelper.buildGoogleApiClient();
-//        }
-        //getCurrentLocation();
+    }
+
+    private void AfterSignUpOperations() {
+        Random r = new Random();
+        refCode = r.nextInt(9) + name.substring(0, 1) + r.nextInt(9) + email.substring(0, 1) + number.substring(number.length() - 1);
+        if (BuildDynamicLink(refCode, email)) {
+            preOperations();
+        } else {
+            preOperations();
+        }
+    }
+
+    private void preOperations() {
+        String android_id = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
+        FirebaseInstanceId.getInstance().getInstanceId().addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
+            @Override
+            public void onComplete(@NonNull Task<InstanceIdResult> task) {
+                if (task.isSuccessful()) {
+                    String token = task.getResult().getToken();
+                    data.setRegistrationToken(token);
+                    User user = new User("", name, email, number, 0, gender, religion, tag, "20971520", refCode, "", data.getRegistrationToken(), android_id);
+                    if (tag.contentEquals("user")) {
+                        Calendar calendar = Calendar.getInstance();
+                        int year_now = calendar.get(Calendar.YEAR);
+                        int selected_year = Integer.parseInt(age.split("-")[2]);
+                        int user_age = year_now - selected_year;
+                        user.setAge(user_age);
+                    }
+                    AfterAccountCreation(user);
+                }
+            }
+        });
     }
 
     private void checkPermissions() {
-        PermissionManager pm = new PermissionManager(SignupActivity.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION});
+        PermissionManager pm = new PermissionManager(SignupActivity.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.READ_PHONE_STATE, Manifest.permission.ACCESS_WIFI_STATE});
         if (!pm.hasAllPermissions()) {
             pm.requestPermissions(345);
         } else {
+            GetDeviceDetails();
             new LocationGetterBackgroundTask().execute();
         }
     }
@@ -311,72 +355,13 @@ public class SignupActivity extends AppCompatActivity implements GoogleApiClient
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == 345) {
-            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            if (grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[2] == PackageManager.PERMISSION_GRANTED) {
+                GetDeviceDetails();
                 new LocationGetterBackgroundTask().execute();
             } else {
                 utils.error("Please allow access to location to continue. Your location is not shared with any third party.");
                 checkPermissions();
             }
-        }
-    }
-
-    private void getCurrentLocation() {
-        mLastLocation = locationHelper.getLocation();
-
-        if (mLastLocation != null) {
-            latitude = mLastLocation.getLatitude();
-            longitude = mLastLocation.getLongitude();
-            getAddress();
-
-        } else {
-            Toast.makeText(getApplicationContext(), "Couldn't get the location. Make sure location is enabled on the device", Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    public void getAddress() {
-        Address locationAddress;
-
-        locationAddress = locationHelper.getAddress(latitude, longitude);
-
-        if (locationAddress != null) {
-
-            String address = locationAddress.getAddressLine(0);
-            String address1 = locationAddress.getAddressLine(1);
-            String city = locationAddress.getLocality();
-            String state = locationAddress.getAdminArea();
-            String country = locationAddress.getCountryName();
-            String postalCode = locationAddress.getPostalCode();
-
-
-            String currentLocation;
-
-            if (!TextUtils.isEmpty(address)) {
-                currentLocation = address;
-
-                if (!TextUtils.isEmpty(address1))
-                    currentLocation += "\n" + address1;
-
-                if (!TextUtils.isEmpty(city)) {
-                    currentLocation += "\n" + city;
-
-                    if (!TextUtils.isEmpty(postalCode))
-                        currentLocation += " - " + postalCode;
-                } else {
-                    if (!TextUtils.isEmpty(postalCode))
-                        currentLocation += "\n" + postalCode;
-                }
-
-                if (!TextUtils.isEmpty(state))
-                    currentLocation += "\n" + state;
-
-                if (!TextUtils.isEmpty(country))
-                    currentLocation += "\n" + country;
-
-                Toast.makeText(SignupActivity.this, currentLocation, Toast.LENGTH_LONG).show();
-            }
-
-        } else {
-            Toast.makeText(SignupActivity.this, "Something went wrong", Toast.LENGTH_LONG).show();
         }
     }
 
@@ -414,15 +399,31 @@ public class SignupActivity extends AppCompatActivity implements GoogleApiClient
             AppDetail app = new AppDetail();
             app.label = ri.loadLabel(manager).toString();
             app.name = ri.activityInfo.packageName;
-            app.icon = ri.activityInfo.loadIcon(manager);
+            //app.icon = ri.activityInfo.loadIcon(manager);
+            app.icon = String.valueOf(ri.activityInfo.icon);
             apps.add(app);
         }
     }
 
-    private void BuildDynamicLink(String ref, String email) {
+    private void GetDeviceDetails() {
+        Device device = new Device(SignupActivity.this);
+        DeviceDetails deviceDetails = new DeviceDetails(
+                device.getReleaseBuildVersion(),
+                device.getBuildVersionCodeName(),
+                device.getManufacturer(),
+                device.getModel(),
+                device.getProduct(),
+                device.getDisplayVersion(),
+                device.getOsVersion(),
+                String.valueOf(device.getSdkVersion())
+        );
+        data.StoreDeviceDetails(deviceDetails);
+    }
+
+    private boolean BuildDynamicLink(String ref, String email) {
         Task<ShortDynamicLink> shortLinkTask = FirebaseDynamicLinks.getInstance().createDynamicLink()
-                .setLink(Uri.parse("http://adsle.com?ref_code=" + ref + "&email=" + email + "&data=52428800"))
-                .setDynamicLinkDomain("xpgf2.app.goo.gl")
+                .setLink(Uri.parse("http://adsle.com?ref_code=" + ref + "&email=" + email + "&data=20971520"))
+                .setDomainUriPrefix("https://adsle.page.link")
                 .setAndroidParameters(new DynamicLink.AndroidParameters.Builder("com.ad.adsle")
                         .build())
                 .setGoogleAnalyticsParameters(new DynamicLink.GoogleAnalyticsParameters.Builder()
@@ -432,11 +433,13 @@ public class SignupActivity extends AppCompatActivity implements GoogleApiClient
                         .build())
                 .setSocialMetaTagParameters(new DynamicLink.SocialMetaTagParameters.Builder()
                         .setTitle("Adsle App")
-                        .setDescription("Get data ")
+                        .setDescription("Get data by viewing ads.")
                         .build())
                 .buildShortDynamicLink().addOnCompleteListener(new OnCompleteListener<ShortDynamicLink>() {
                     @Override
                     public void onComplete(@NonNull Task<ShortDynamicLink> task) {
+                        isLinkDone = true;
+                        //Log.e("refLinkError", "error" + task.getException());
                         if (task.isSuccessful()) {
                             refLink = task.getResult().getShortLink().toString();
                         } else {
@@ -444,36 +447,12 @@ public class SignupActivity extends AppCompatActivity implements GoogleApiClient
                         }
                     }
                 });
+        return isLinkDone;
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        //locationHelper.checkPlayServices();
-    }
-
-    /**
-     * Google api callback methods
-     */
-    @Override
-    public void onConnectionFailed(ConnectionResult result) {
-        //Log.i("Connection failed:", " ConnectionResult.getErrorCode() = "+ result.getErrorCode());
-    }
-
-    @Override
-    public void onConnected(Bundle arg0) {
-        // Once connected with google api, get the location
-        //mLastLocation = locationHelper.getLocation();
-    }
-
-    @Override
-    public void onConnectionSuspended(int arg0) {
-        //locationHelper.connectApiClient();
     }
 
     @Override
@@ -490,9 +469,9 @@ public class SignupActivity extends AppCompatActivity implements GoogleApiClient
             docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                 @Override
                 public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                    if(task.isSuccessful()){
+                    if (task.isSuccessful()) {
                         Map<String, Object> snapshot = task.getResult().getData();
-                        long data = Long.parseLong(String.valueOf(snapshot.get("bonus_data")));
+                        long data = Long.parseLong(String.valueOf(snapshot != null ? snapshot.get("bonus_data") : "0"));
                         data = data + mb;
                         Map<String, Object> param = new HashMap<>();
                         param.put("bonus_data", String.valueOf(data));
@@ -505,8 +484,74 @@ public class SignupActivity extends AppCompatActivity implements GoogleApiClient
 
     private void AfterAccountCreation(User user) {
         user.setReferralLink(refLink);
+        if (tag.contentEquals("user")) {
+            GiveUserData();
+        }
+        LocationDetails locationDetails = data.getLocationDetails();
+        if (locationDetails.getFormatted_address().contains("N/A")) {
+            LocationInfo locationInfo = new LocationInfo(SignupActivity.this);
+            DeviceLocation location = locationInfo.getLocation();
+            locationDetails.setCity(location.getState());
+            locationDetails.setArea(location.getCity());
+            locationDetails.setInside_area(location.getAddressLine1());
+            locationDetails.setFormatted_address(location.getAddressLine1());
+            locationDetails.setCountry(location.getCountryCode());
+            data.StoreLocationDetails(locationDetails);
+        }
+        DatabaseReference refId = FirebaseDatabase.getInstance().getReference();
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        CollectionReference userRef = db.collection("users").document(email).collection("user-data");
+        String id = refId.push().getKey();
+        user.setId(id);
+        userRef.document("signup").set(user).addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                if (task.isSuccessful()) {
+                    userRef.document("location-data").set(locationDetails).addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            if (task.isSuccessful()) {
+                                Map<String, Object> param = new HashMap<>();
+                                param.put("data", apps);
+                                userRef.document("user-apps").set(param).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<Void> task) {
+                                        if (task.isSuccessful()) {
+                                            //Map<String, Object> paramDevice = new HashMap<>();
+                                            //paramDevice.put("data", apps);
+                                            userRef.document("device-details").set(data.getDeviceDetails()).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                @Override
+                                                public void onComplete(@NonNull Task<Void> task) {
+                                                    if (task.isSuccessful()) {
+                                                        data.setLogged(true);
+                                                        data.StoreUsers(user);
+                                                        startActivity(new Intent(SignupActivity.this, InterestActivity.class));
+                                                        finish();
+                                                    } else {
+                                                        errorOccurred("");
+                                                    }
+                                                }
+                                            });
+                                        } else {
+                                            errorOccurred("");
+                                        }
+                                    }
+                                });
+                            } else {
+                                errorOccurred("");
+                            }
+                        }
+                    });
+                } else {
+                    errorOccurred("");
+                }
+            }
+        });
+    }
 
-
-        GiveUserData();
+    private void errorOccurred(String error) {
+        utils.dismissDialog();
+        utils.error("Something went wrong. Try again.");
+        Log.e("SignupActivity", "error at " + error);
     }
 }

@@ -142,6 +142,9 @@ public class UserLocationService implements GoogleApiClient.ConnectionCallbacks,
     @Override
     public void setLocation(String city, String area, String inside_area, String formatted_address, String country) {
         //Log.e("After LatLng", "Inside Area = " + inside_area);
+        if (TextUtils.isEmpty(country)) {
+            return;
+        }
         locationDetails.setFormatted_address(formatted_address);
         locationDetails.setLatlng(latitude + "," + longitude);
         locationDetails.setInside_area(inside_area);

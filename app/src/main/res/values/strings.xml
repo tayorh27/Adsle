@@ -12,7 +12,7 @@
     <string name="send_password_reset_email">Send Password reset email</string>
     <string name="remove_user">Remove user</string>
     <string name="new_pass">New Pin</string>
-    <string name="title_activity_profile">Firebase</string>
+    <string name="title_activity_profile">My Account</string>
     <string name="hint_email">Email</string>
     <string name="hint_password">Password</string>
     <string name="hint_name">Fullname</string>
@@ -51,11 +51,39 @@
     <string name="resend_code"><u>Resend Code</u></string>
     <string name="select_contact"><u>Select contact</u></string>
 
+    <string name="google_place_maps_key" templateMergeStrategy="preserve" translatable="false">
+        AIzaSyDMwSxTrzgf3OBB8WFXjaFKn7as-GKByoU
+    </string>
+
     <string-array name="gender">
         <item>Male</item>
         <item>Female</item>
     </string-array>
-    <string name="appwidget_text">EXAMPLE</string>
+
+    <string-array name="cam_gender">
+        <item>Male</item>
+        <item>Female</item>
+        <item>Both</item>
+    </string-array>
+
+    <string-array name="religion">
+        <item>Christianity</item>
+        <item>Islam</item>
+    </string-array>
+
+    <string-array name="cam_religion">
+        <item>Christianity</item>
+        <item>Islam</item>
+        <item>Both</item>
+    </string-array>
+    <string-array name="cam_link_options">
+        <item>Action App Install</item>
+        <item>Action Call</item>
+        <item>Action Email</item>
+        <item>Action Link</item>
+    </string-array>
+
+    <string name="appwidget_text">ADSLE</string>
     <string name="add_widget">Add widget</string>
     <string name="title_activity_home">Home</string>
 
@@ -65,4 +93,9 @@
     <string name="menu_tools">Tools</string>
     <string name="menu_share">Share</string>
     <string name="menu_send">Send</string>
+    <string name="title_interest">Select Your Interests</string>
+    <string name="title_activity_invite">Invite Friends</string>
+    <string name="title_activity_topup">Adsle Topup</string>
+    <string name="view_cam"><u>View Campaign</u></string>
+    <string name="title_activity_create_campaign">Create New Campaign</string>
 </resources>

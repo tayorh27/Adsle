@@ -13,6 +13,10 @@ public class LocationDetails {
         this.latlng = latlng;
     }
 
+    public LocationDetails() {
+
+    }
+
     public String getCity() {
         return city;
     }
