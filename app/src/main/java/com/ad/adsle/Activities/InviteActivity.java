@@ -22,6 +22,8 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.dynamiclinks.DynamicLink;
 import com.google.firebase.dynamiclinks.FirebaseDynamicLinks;
 import com.google.firebase.dynamiclinks.ShortDynamicLink;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper;
 
@@ -93,12 +95,20 @@ public class InviteActivity extends AppCompatActivity {
                         if (task.isSuccessful()) {
                             refLink = task.getResult().getShortLink().toString();
                             user.setReferralLink(refLink);
+                            data.StoreUsers(user);
+                            SaveToDatabase(refLink);
                             sendInvite();
                         } else {
                             Log.e("refLinkError", "error" + task.getException());
                         }
                     }
                 });
+    }
+
+    private void SaveToDatabase(String refLink) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        DocumentReference docRef = db.collection("users").document(user.getEmail()).collection("user-data").document("signup");
+        docRef.update("referralLink", refLink);
     }
 
     @Override

@@ -12,7 +12,10 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
+import android.text.Editable;
 import android.text.InputType;
+import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -28,6 +31,7 @@ import android.widget.Toast;
 
 import com.ad.adsle.Db.AppData;
 import com.ad.adsle.Information.AppDetail;
+import com.ad.adsle.Information.CampaignInformation;
 import com.ad.adsle.Information.LocationDetails;
 import com.ad.adsle.R;
 import com.ad.adsle.Util.Utils;
@@ -43,6 +47,9 @@ import com.google.android.libraries.places.api.model.Place;
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.theartofdev.edmodo.cropper.CropImage;
@@ -54,9 +61,11 @@ import com.wajahatkarim3.easyflipview.EasyFlipView;
 
 import org.joda.time.DateTime;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Date;
 
 import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper;
 
@@ -72,19 +81,24 @@ public class CreateCampaignActivity extends AppCompatActivity implements DatePic
     ImageView imgCamImage;
     private int RESULT_LOAD_IMG = 19;
 
+    String selected_date = "";
+
     AppData data;
 
-    String cam_title, cam_age, cam_gender, cam_religion, cam_interests, ad_image;
+    String cam_title, cam_age, cam_gender, cam_religion, cam_link_options, ad_image, cam_link_text, cam_reached;
     boolean isExist = false;
     FirebaseAuth auth;
     Utils utils;
     private PackageManager manager;
     private ArrayList<AppDetail> apps;
-    boolean isLinkDone = false;
+    boolean isPlaceSelected = false;
     LocationDetails locationDetails;
 
     ArrayList<String> interests = new ArrayList<>();
     ArrayList<String> selected_interests = new ArrayList<>();
+
+    long total_amount = 0;
+    CampaignInformation campaignInformation;
 
     @Override
     protected void attachBaseContext(Context newBase) {
@@ -124,6 +138,7 @@ public class CreateCampaignActivity extends AppCompatActivity implements DatePic
             @Override
             public void onPlaceSelected(@NonNull Place place) {
                 // TODO: Get info about the selected place.
+                isPlaceSelected = true;
                 locationDetails = new LocationDetails(place.getName(), place.getName(), place.getName(), place.getAddress(), place.getAddress(), place.getLatLng().latitude + "," + place.getLatLng().longitude);
             }
 
@@ -144,8 +159,7 @@ public class CreateCampaignActivity extends AppCompatActivity implements DatePic
                         .showTitle(true)
                         .showDaySpinner(true)
                         .defaultDate(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH))
-                        .maxDate(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH))
-                        .minDate(1800, 0, 1)
+                        .minDate(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH))
                         .build()
                         .show();
             }
@@ -177,6 +191,32 @@ public class CreateCampaignActivity extends AppCompatActivity implements DatePic
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+
+        inputReached.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                String reached = String.valueOf(s);
+                String[] date = selected_date.split("-");
+                if (!TextUtils.isEmpty(reached)) {
+                    if (!TextUtils.isEmpty(selected_date)) {
+                        int people = Integer.parseInt(reached);
+                        summaryMaker(false, people, Integer.parseInt(date[0]), Integer.parseInt(date[1]), Integer.parseInt(date[2]));
+                    }
+                } else {
+                    summaryMaker(false, 0, Integer.parseInt(date[0]), Integer.parseInt(date[1]), Integer.parseInt(date[2]));
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
 
             }
         });
@@ -239,6 +279,51 @@ public class CreateCampaignActivity extends AppCompatActivity implements DatePic
 
     }
 
+    public void PayAndCreateAd(View view) {
+        String[] _genders = getResources().getStringArray(R.array.cam_gender);
+        String[] _religions = getResources().getStringArray(R.array.cam_religion);
+        String[] _link_options = getResources().getStringArray(R.array.cam_link_options);
+
+        cam_title = inputCamTitle.getText().toString().trim();
+        cam_link_text = inputCamLink.getText().toString().trim();
+        cam_reached = inputReached.getText().toString().trim();
+        cam_age = tvAgeRange.getText().toString().replace(" ", "");
+        cam_gender = _genders[inputGender.getSelectedItemPosition()];
+        cam_religion = _religions[inputReligion.getSelectedItemPosition()];
+        cam_link_options = _link_options[inputAdLinkOption.getSelectedItemPosition()];
+
+        if (TextUtils.isEmpty(cam_title)) {
+            Toast.makeText(getApplicationContext(), "Enter campaign title!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (!isPlaceSelected) {
+            Toast.makeText(getApplicationContext(), "Enter target location!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (TextUtils.isEmpty(cam_link_text)) {
+            Toast.makeText(getApplicationContext(), "Enter ad lint!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (TextUtils.isEmpty(cam_reached)) {
+            Toast.makeText(getApplicationContext(), "Enter number of people to reach this ad!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (TextUtils.isEmpty(ad_image)) {
+            Toast.makeText(getApplicationContext(), "Select an image for your campaign", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        DatabaseReference refId = FirebaseDatabase.getInstance().getReference();
+        String id = refId.push().getKey();
+        campaignInformation = new CampaignInformation(id, cam_title, cam_age, cam_gender, cam_religion, locationDetails, selected_interests, ad_image, cam_link_options, cam_link_text, cam_reached, selected_date, String.valueOf(total_amount),
+                false, "0", "0", "0",
+                "0");
+
+    }
+
     private void summaryMaker(boolean start, int people, int day, int month, int year) {
         String[] months = {"January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"};
         Calendar calendar = Calendar.getInstance();
@@ -246,10 +331,33 @@ public class CreateCampaignActivity extends AppCompatActivity implements DatePic
         int m = calendar.get(Calendar.MONTH);
         int y = calendar.get(Calendar.YEAR);
         if (start) {
-            tvSummary.setText("You will spend ₦0.00. This ad will run for 0 day, ending on " + months[m] + d + ", " + y + ".");
+            tvSummary.setText("You will spend ₦0.00. This ad will run for 0 day, ending on " + months[m] + " " + d + ", " + y + ".");
         } else {
-            DateTime current_date = DateTime.now();
-            //current_date
+
+            Date firstDate = calendar.getTime();
+
+            Calendar cal = Calendar.getInstance();
+            cal.set(Calendar.DAY_OF_MONTH, day);
+            cal.set(Calendar.MONTH, month);
+            cal.set(Calendar.YEAR, year);
+            Date secondDate = cal.getTime();
+
+
+            long diff = secondDate.getTime() - firstDate.getTime();
+            int days = Math.toIntExact((diff / (1000 * 60 * 60 * 24)));
+
+            if (diff < 1) {
+                utils.error("Please select a future date.");
+                return;
+            }
+
+            long amount = people * days;
+
+            double percent = (amount * 1.4) / 100;
+
+            total_amount = (long) (amount + percent);
+
+            tvSummary.setText("You will spend ₦" + total_amount + ". This ad will run for " + days + " day(s), ending on " + months[month] + " " + day + ", " + year + ".");
         }
 
     }
@@ -358,7 +466,10 @@ public class CreateCampaignActivity extends AppCompatActivity implements DatePic
 
     @Override
     public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
-        String selected_date = dayOfMonth + "-" + (monthOfYear + 1) + "-" + year;
-        btnExpire.setText(selected_date);
+        int people = (TextUtils.isEmpty(inputReached.getText().toString())) ? 0 : Integer.parseInt(inputReached.getText().toString());
+        summaryMaker(false, people, dayOfMonth, monthOfYear, year);
+        selected_date = dayOfMonth + "-" + monthOfYear + "-" + year;
+        String _selected_date = dayOfMonth + "-" + (monthOfYear + 1) + "-" + year;
+        btnExpire.setText(_selected_date);
     }
 }
