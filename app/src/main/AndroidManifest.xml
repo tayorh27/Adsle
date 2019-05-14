@@ -28,6 +28,13 @@
         android:roundIcon="@mipmap/adsle_logo"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+        <activity android:name=".Activities.CampaignListActivity"></activity>
+        <activity
+            android:name=".Activities.CampaignTransactionActivity"
+            android:label="@string/title_activity_transaction" />
+        <activity
+            android:name=".Activities.PaymentActivity"
+            android:label="@string/title_activity_payment" />
 
         <meta-data
             android:name="com.google.android.gms.version"
@@ -39,7 +46,6 @@
         <activity
             android:name="com.theartofdev.edmodo.cropper.CropImageActivity"
             android:theme="@style/Base.Theme.AppCompat" />
-
         <activity
             android:name=".Activities.CreateCampaignActivity"
             android:label="@string/title_activity_create_campaign" />

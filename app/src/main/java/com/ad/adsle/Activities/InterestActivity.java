@@ -99,7 +99,7 @@ public class InterestActivity extends AppCompatActivity implements InterestClick
                     if (task.isSuccessful()) {
                         utils.dismissDialog();
                         data.setInterestSelected(true);
-                        startActivity(new Intent(InterestActivity.this, HomeActivity.class));
+                        startActivity(new Intent(InterestActivity.this, InviteActivity.class));
                         finish();
                     } else {
                         errorOccurred();

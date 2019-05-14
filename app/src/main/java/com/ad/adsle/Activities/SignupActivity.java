@@ -60,6 +60,7 @@ import com.tsongkha.spinnerdatepicker.SpinnerDatePickerDialogBuilder;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -327,7 +328,7 @@ public class SignupActivity extends AppCompatActivity implements DatePickerDialo
                 if (task.isSuccessful()) {
                     String token = task.getResult().getToken();
                     data.setRegistrationToken(token);
-                    User user = new User("", name, email, number, 0, gender, religion, tag, "20971520", refCode, "", data.getRegistrationToken(), android_id);
+                    User user = new User("", name, email, number, 0, gender, religion, tag, "20971520", refCode, "", data.getRegistrationToken(), android_id, new Date().toLocaleString());
                     if (tag.contentEquals("user")) {
                         Calendar calendar = Calendar.getInstance();
                         int year_now = calendar.get(Calendar.YEAR);

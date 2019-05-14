@@ -8,6 +8,7 @@ import android.net.Uri;
 import android.os.Bundle;
 
 import com.ad.adsle.Db.AppData;
+import com.ad.adsle.Information.CampaignInformation;
 import com.ad.adsle.Information.Plans;
 import com.ad.adsle.Information.User;
 import com.ad.adsle.R;
@@ -15,6 +16,8 @@ import com.ad.adsle.Util.Utils;
 import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.github.bijoysingh.starter.util.PermissionManager;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 
@@ -34,6 +37,12 @@ import androidx.appcompat.app.ActionBarDrawerToggle;
 import android.view.MenuItem;
 
 import com.google.android.material.navigation.NavigationView;
+import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.EventListener;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import androidx.drawerlayout.widget.DrawerLayout;
 
@@ -41,8 +50,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
 import android.view.Menu;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import java.util.Map;
 
 import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper;
 
@@ -63,6 +75,14 @@ public class HomeActivity extends AppCompatActivity
     Plans plan = null;
     AppCompatTextView edit_plan;
 
+    boolean isCampaignExists = false;
+    CampaignInformation current_campaign;
+
+    LinearLayout dataLayout, camLayout;
+    AppCompatTextView camM1, camM2, camM3, viewCam, t1, t2, t3;
+
+    String total_cam_count = "", total_active_cam_count = "", total_inactive_cam_count = "";
+
     @Override
     protected void attachBaseContext(Context newBase) {
         super.attachBaseContext(CalligraphyContextWrapper.wrap(newBase));
@@ -78,6 +98,17 @@ public class HomeActivity extends AppCompatActivity
         user = data.getUser();
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        dataLayout = findViewById(R.id.data_layout);
+        camLayout = findViewById(R.id.cam_layout);
+        camM1 = findViewById(R.id.cam_menu1);
+        camM2 = findViewById(R.id.cam_menu2);
+        camM3 = findViewById(R.id.cam_menu3);
+
+        t1 = findViewById(R.id.TMenu1);
+        t2 = findViewById(R.id.TMenu2);
+        t3 = findViewById(R.id.TMenu3);
+
+        viewCam = findViewById(R.id.cam_current_view);
         nBonus = findViewById(R.id.tvBonus);
         edit_plan = findViewById(R.id.textplan);
         FloatingActionButton fab = findViewById(R.id.fab);
@@ -95,10 +126,24 @@ public class HomeActivity extends AppCompatActivity
         toggle.syncState();
         navigationView.setNavigationItemSelectedListener(this);
 
+        viewCam.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (current_campaign != null) {
+                    Intent intent = new Intent();
+                    intent.putExtra("current_campaign", current_campaign);
+                    startActivity(intent);
+                }
+            }
+        });
+
         LoadNavHeaderDetails();
     }
 
     private void LoadNavHeaderDetails() {
+        if (user.getTag().contentEquals("advertiser")) {
+            dataLayout.setVisibility(View.GONE);
+        }
         nBonus.setText(utils.getExactDataValue(user.getBonus_data()));
         name = navigationView.getHeaderView(0).findViewById(R.id.tvName);
         email = navigationView.getHeaderView(0).findViewById(R.id.tvEmail);
@@ -184,6 +229,27 @@ public class HomeActivity extends AppCompatActivity
     }
 
     @Override
+    protected void onStart() {
+        super.onStart();
+        data = new AppData(HomeActivity.this);
+        user = data.getUser();
+        getCurrentCampaign();
+    }
+
+    private void updateViews() {
+        if (current_campaign != null && isCampaignExists) {
+            camLayout.setVisibility(View.VISIBLE);
+            camM1.setText(current_campaign.getReach_number());
+            camM2.setText(current_campaign.getViews_number());
+            camM3.setText(current_campaign.getClicks_number());
+
+            t1.setText(total_cam_count);
+            t2.setText(total_active_cam_count);
+            t3.setText(total_inactive_cam_count);
+        }
+    }
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.home, menu);
@@ -245,8 +311,9 @@ public class HomeActivity extends AppCompatActivity
 
         if (id == R.id.nav_manage) {
             // Handle the camera action
+            startActivity(new Intent(HomeActivity.this, CampaignListActivity.class));
         } else if (id == R.id.nav_trans) {
-
+            startActivity(new Intent(HomeActivity.this, CampaignTransactionActivity.class));
         }
         if (id == R.id.nav_invite) {
             startActivity(new Intent(HomeActivity.this, InviteActivity.class));
@@ -329,5 +396,64 @@ public class HomeActivity extends AppCompatActivity
             return;
         }
         startActivity(intent);
+    }
+
+    private void getCurrentCampaign() {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("users").document(user.getEmail()).collection("user-data").document("settings").get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                if (task.getResult() != null) {
+                    Map<String, Object> snapshot = task.getResult().getData();
+                    if (snapshot != null) {
+                        isCampaignExists = true;
+                        String currentTitle = String.valueOf(snapshot.get("current_campaign"));
+                        db.collection("campaigns").document(currentTitle).addSnapshotListener(new EventListener<DocumentSnapshot>() {
+                            @Override
+                            public void onEvent(@javax.annotation.Nullable DocumentSnapshot documentSnapshot, @javax.annotation.Nullable FirebaseFirestoreException e) {
+                                current_campaign = documentSnapshot.toObject(CampaignInformation.class);
+                                updateViews();
+                            }
+                        });
+
+                        db.collection("campaigns").whereArrayContains("email", user.getEmail()).get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                            @Override
+                            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                                if (task.getResult().getDocuments().isEmpty()) {
+                                    total_cam_count = "0";
+                                } else {
+                                    total_cam_count = "" + task.getResult().getDocuments().size();
+                                }
+                                updateViews();
+                            }
+                        });
+
+                        db.collection("campaigns").whereArrayContains("email", user.getEmail()).whereEqualTo("status", true).get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                            @Override
+                            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                                if (task.getResult().getDocuments().isEmpty()) {
+                                    total_active_cam_count = "0";
+                                } else {
+                                    total_active_cam_count = "" + task.getResult().getDocuments().size();
+                                }
+                                updateViews();
+                            }
+                        });
+
+                        db.collection("campaigns").whereArrayContains("email", user.getEmail()).whereEqualTo("status", false).get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                            @Override
+                            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                                if (task.getResult().getDocuments().isEmpty()) {
+                                    total_inactive_cam_count = "0";
+                                } else {
+                                    total_inactive_cam_count = "" + task.getResult().getDocuments().size();
+                                }
+                                updateViews();
+                            }
+                        });
+                    }
+                }
+            }
+        });
     }
 }

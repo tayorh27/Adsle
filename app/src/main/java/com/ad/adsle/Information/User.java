@@ -2,14 +2,14 @@ package com.ad.adsle.Information;
 
 public class User {
 
-    String id, name, email, number, gender, religion, tag, bonus_data, referralCode, referralLink, msgId, deviceId;
+    String id, name, email, number, gender, religion, tag, bonus_data, referralCode, referralLink, msgId, deviceId, created_date;
     int age;
 
     public User() {
 
     }
 
-    public User(String id, String name, String email, String number, int age, String gender, String religion, String tag, String bonus_data, String referralCode, String referralLink, String msgId, String deviceId) {
+    public User(String id, String name, String email, String number, int age, String gender, String religion, String tag, String bonus_data, String referralCode, String referralLink, String msgId, String deviceId, String created_date) {
         this.id = id;
         this.name = name;
         this.email = email;
@@ -23,6 +23,7 @@ public class User {
         this.referralLink = referralLink;
         this.msgId = msgId;
         this.deviceId = deviceId;
+        this.created_date = created_date;
     }
 
     public String getId() {
@@ -117,5 +118,23 @@ public class User {
         this.tag = tag;
     }
 
+    public void setName(String name) {
+        this.name = name;
+    }
 
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public void setNumber(String number) {
+        this.number = number;
+    }
+
+    public String getCreated_date() {
+        return created_date;
+    }
+
+    public void setCreated_date(String created_date) {
+        this.created_date = created_date;
+    }
 }

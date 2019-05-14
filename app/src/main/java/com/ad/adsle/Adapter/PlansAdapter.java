@@ -71,7 +71,7 @@ public class PlansAdapter extends RecyclerView.Adapter<PlansAdapter.PlanHolder> 
                 @Override
                 public void onClick(View v) {
                     if (clickListener != null) {
-                        clickListener.onPlanClick(v, getPosition());
+                        clickListener.onViewClick(v, getPosition());
                     }
                 }
             });

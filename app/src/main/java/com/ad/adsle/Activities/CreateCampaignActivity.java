@@ -5,11 +5,13 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.Manifest;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.Editable;
@@ -20,6 +22,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.webkit.MimeTypeMap;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
@@ -33,6 +36,8 @@ import com.ad.adsle.Db.AppData;
 import com.ad.adsle.Information.AppDetail;
 import com.ad.adsle.Information.CampaignInformation;
 import com.ad.adsle.Information.LocationDetails;
+import com.ad.adsle.Information.Transactions;
+import com.ad.adsle.Information.User;
 import com.ad.adsle.R;
 import com.ad.adsle.Util.Utils;
 import com.afollestad.materialdialogs.DialogAction;
@@ -41,6 +46,7 @@ import com.crystal.crystalrangeseekbar.interfaces.OnRangeSeekbarChangeListener;
 import com.crystal.crystalrangeseekbar.widgets.CrystalRangeSeekbar;
 import com.github.bijoysingh.starter.util.PermissionManager;
 import com.google.android.gms.common.api.Status;
+import com.google.android.gms.tasks.Continuation;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.libraries.places.api.model.Place;
@@ -50,8 +56,12 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 import com.theartofdev.edmodo.cropper.CropImage;
 import com.theartofdev.edmodo.cropper.CropImageView;
 import com.tsongkha.spinnerdatepicker.DatePicker;
@@ -61,11 +71,15 @@ import com.wajahatkarim3.easyflipview.EasyFlipView;
 
 import org.joda.time.DateTime;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper;
 
@@ -89,6 +103,7 @@ public class CreateCampaignActivity extends AppCompatActivity implements DatePic
     boolean isExist = false;
     FirebaseAuth auth;
     Utils utils;
+    User user;
     private PackageManager manager;
     private ArrayList<AppDetail> apps;
     boolean isPlaceSelected = false;
@@ -99,6 +114,11 @@ public class CreateCampaignActivity extends AppCompatActivity implements DatePic
 
     long total_amount = 0;
     CampaignInformation campaignInformation;
+
+    StorageReference storageReference;
+    boolean isPaymentMade = false;
+    String authCode, card_reference;
+    String _minValue = "0", _maxValue = "100";
 
     @Override
     protected void attachBaseContext(Context newBase) {
@@ -116,6 +136,11 @@ public class CreateCampaignActivity extends AppCompatActivity implements DatePic
 
         auth = FirebaseAuth.getInstance();
         data = new AppData(CreateCampaignActivity.this);
+        if (auth.getCurrentUser() == null) {
+            data.Logout();
+            return;
+        }
+        user = data.getUser();
         utils = new Utils(CreateCampaignActivity.this);
         inputCamTitle = findViewById(R.id.cam_title);
         inputCamLink = findViewById(R.id.cam_link);
@@ -211,7 +236,11 @@ public class CreateCampaignActivity extends AppCompatActivity implements DatePic
                         summaryMaker(false, people, Integer.parseInt(date[0]), Integer.parseInt(date[1]), Integer.parseInt(date[2]));
                     }
                 } else {
-                    summaryMaker(false, 0, Integer.parseInt(date[0]), Integer.parseInt(date[1]), Integer.parseInt(date[2]));
+                    if (!TextUtils.isEmpty(selected_date)) {
+                        summaryMaker(false, 0, Integer.parseInt(date[0]), Integer.parseInt(date[1]), Integer.parseInt(date[2]));
+                    } else {
+                        summaryMaker(true, 0, 0, 0, 0);
+                    }
                 }
             }
 
@@ -225,8 +254,8 @@ public class CreateCampaignActivity extends AppCompatActivity implements DatePic
             @Override
             public void valueChanged(Number minValue, Number maxValue) {
                 tvAgeRange.setText(String.valueOf(minValue) + " - " + String.valueOf(maxValue));
-                //tvMin.setText(String.valueOf(minValue));
-                //tvMax.setText(String.valueOf(maxValue));
+                _minValue = String.valueOf(minValue);
+                _maxValue = String.valueOf(maxValue);
             }
         });
 
@@ -297,13 +326,15 @@ public class CreateCampaignActivity extends AppCompatActivity implements DatePic
             return;
         }
 
-        if (!isPlaceSelected) {
-            Toast.makeText(getApplicationContext(), "Enter target location!", Toast.LENGTH_SHORT).show();
-            return;
-        }
+//        if (!isPlaceSelected) {
+//            Toast.makeText(getApplicationContext(), "Enter target location!", Toast.LENGTH_SHORT).show();
+//            return;
+//        }
+
+        locationDetails = new LocationDetails("EX", "EX", "EX", "EX", "XE", "XE");
 
         if (TextUtils.isEmpty(cam_link_text)) {
-            Toast.makeText(getApplicationContext(), "Enter ad lint!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(), "Enter ad link!", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -313,15 +344,29 @@ public class CreateCampaignActivity extends AppCompatActivity implements DatePic
         }
 
         if (TextUtils.isEmpty(ad_image)) {
-            Toast.makeText(getApplicationContext(), "Select an image for your campaign", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(), "Set an image for your campaign", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (TextUtils.isEmpty(selected_date)) {
+            Toast.makeText(getApplicationContext(), "Set a duration for your campaign", Toast.LENGTH_SHORT).show();
             return;
         }
         DatabaseReference refId = FirebaseDatabase.getInstance().getReference();
         String id = refId.push().getKey();
-        campaignInformation = new CampaignInformation(id, cam_title, cam_age, cam_gender, cam_religion, locationDetails, selected_interests, ad_image, cam_link_options, cam_link_text, cam_reached, selected_date, String.valueOf(total_amount),
+        campaignInformation = new CampaignInformation(id, user.getEmail(), cam_title, _minValue, _maxValue, cam_gender, cam_religion, locationDetails, selected_interests, "", cam_link_options, cam_link_text, cam_reached, selected_date, String.valueOf(total_amount),
                 false, "0", "0", "0",
-                "0");
-
+                "0", new Date().toLocaleString());
+        if (isPaymentMade) {
+            isPaymentMade = true;
+            campaignInformation.setStatus(true);
+            UploadAdImageToServer(authCode, card_reference);
+        } else {
+            Bundle bundle = new Bundle();
+            bundle.putLong("total_amount", total_amount);
+            Intent mIntent = new Intent(CreateCampaignActivity.this, PaymentActivity.class).putExtras(bundle);
+            startActivityForResult(mIntent, 900);
+        }
     }
 
     private void summaryMaker(boolean start, int people, int day, int month, int year) {
@@ -344,7 +389,7 @@ public class CreateCampaignActivity extends AppCompatActivity implements DatePic
 
 
             long diff = secondDate.getTime() - firstDate.getTime();
-            int days = Math.toIntExact((diff / (1000 * 60 * 60 * 24)));
+            int days = (int) (diff / (1000 * 60 * 60 * 24));
 
             if (diff < 1) {
                 utils.error("Please select a future date.");
@@ -353,11 +398,11 @@ public class CreateCampaignActivity extends AppCompatActivity implements DatePic
 
             long amount = people * days;
 
-            double percent = (amount * 1.4) / 100;
+            double percent = (amount * 1.5) / 100;
 
             total_amount = (long) (amount + percent);
 
-            tvSummary.setText("You will spend ₦" + total_amount + ". This ad will run for " + days + " day(s), ending on " + months[month] + " " + day + ", " + year + ".");
+            tvSummary.setText("You will spend ₦" + total_amount + ".00 . This ad will run for " + days + " day(s), ending on " + months[month] + " " + day + ", " + year + ".");
         }
 
     }
@@ -439,8 +484,8 @@ public class CreateCampaignActivity extends AppCompatActivity implements DatePic
                     CropImage.activity(data.getData())
                             .setGuidelines(CropImageView.Guidelines.ON)
                             .setAutoZoomEnabled(true)
-                            .setOutputCompressQuality(70)
-                            .setOutputCompressFormat(Bitmap.CompressFormat.PNG)
+                            .setOutputCompressQuality(80)
+                            //.setOutputCompressFormat(Bitmap.CompressFormat.PNG)
                             .start(this);
             }
             if (requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE) {
@@ -459,9 +504,104 @@ public class CreateCampaignActivity extends AppCompatActivity implements DatePic
                     e.printStackTrace();
                 }
             }
+            if (requestCode == 900) {
+                if (resultCode == RESULT_OK) {
+                    boolean status = data.getBooleanExtra("status", false);
+                    authCode = data.getStringExtra("authCode");
+                    card_reference = data.getStringExtra("card_reference");
+                    if (status) {
+                        isPaymentMade = true;
+                        campaignInformation.setStatus(true);
+                        UploadAdImageToServer(authCode, card_reference);
+                    } else {
+                        utils.error("Payment processing failed. Try again.");
+                    }
+                }
+            }
         } catch (Exception e) {
             Log.e("onActivityResult", "something went wrong - " + e.toString());
         }
+    }
+
+    private String getFileExtension(Uri uri) {
+        ContentResolver cR = getContentResolver();
+        MimeTypeMap mime = MimeTypeMap.getSingleton();
+        return mime.getExtensionFromMimeType(cR.getType(uri));
+    }
+
+    private void UploadAdImageToServer(String authCode, String card_reference) {
+        utils.displayDialog("Initializing campaign...");
+        storageReference = FirebaseStorage.getInstance().getReference();
+        File imageFile = new File(ad_image);
+        Uri file = Uri.fromFile(imageFile);
+        String img_name = file.getLastPathSegment();
+        String getExtension = img_name.substring(img_name.lastIndexOf(".") + 1);
+        //String getExtension = getFileExtension(file);
+        //Log.e("getExtension", "UploadAdImageToServer: " + getExtension);
+//        imgCamImage.setDrawingCacheEnabled(true);
+//        imgCamImage.buildDrawingCache();
+//        Bitmap bitmap = ((BitmapDrawable) imgCamImage.getDrawable()).getBitmap();
+//        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+//
+//        bitmap.compress(Bitmap.CompressFormat.PNG, 100, baos);
+        //byte[] data = baos.toByteArray();
+        final StorageReference path = storageReference.child("images/" + System.currentTimeMillis() + "." + getExtension);
+        //UploadTask uploadTask = path.putBytes(data);
+        UploadTask uploadTask = path.putFile(file);
+        Task<Uri> urlTask = uploadTask.continueWithTask(new Continuation<UploadTask.TaskSnapshot, Task<Uri>>() {
+            @Override
+            public Task<Uri> then(@NonNull Task<UploadTask.TaskSnapshot> task) throws Exception {
+                if (!task.isSuccessful()) {
+                    utils.dismissDialog();
+                    Toast.makeText(CreateCampaignActivity.this, "Something went wrong. Try again",
+                            Toast.LENGTH_SHORT).show();
+                }
+                // Continue with the task to get the download URL
+                return path.getDownloadUrl();
+            }
+        }).addOnCompleteListener(new OnCompleteListener<Uri>() {
+            @Override
+            public void onComplete(@NonNull Task<Uri> task) {
+                if (task.isSuccessful()) {
+                    utils.dismissDialog();
+                    Uri downloadUri = task.getResult();
+                    campaignInformation.setCampaign_image(downloadUri.toString());
+                    ContinueWithAdTask(authCode, card_reference);
+                } else {
+                    errorOccurred();
+                }
+            }
+        });
+    }
+
+    private void ContinueWithAdTask(String authCode, String card_reference) {
+        utils.displayDialog("Creating your campaign...");
+        FirebaseFirestore db = FirebaseFirestore.getInstance();//user.getEmail()
+        db.collection("campaigns").document(campaignInformation.getId()).set(campaignInformation).addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                if (task.isSuccessful()) {
+                    Map<String, Object> settings_params = new HashMap<>();
+                    settings_params.put("current_campaign", campaignInformation.getId());
+                    settings_params.put("authCode", authCode);
+                    db.collection("users").document(user.getEmail()).collection("user-data").document("settings").set(settings_params);
+                    DatabaseReference refId = FirebaseDatabase.getInstance().getReference();
+                    String id = refId.push().getKey();
+                    Transactions transactions = new Transactions(id, campaignInformation.getId(), String.valueOf(total_amount), new Date().toLocaleString(), card_reference);
+                    db.collection("users").document(user.getEmail()).collection("user-data").document("transactions").collection("user-trans").document(id).set(transactions);
+                    Toast.makeText(CreateCampaignActivity.this, "Campaign created successfully", Toast.LENGTH_LONG).show();
+                    startActivity(new Intent(CreateCampaignActivity.this, HomeActivity.class));
+                    finish();
+                } else {
+                    errorOccurred();
+                }
+            }
+        });
+    }
+
+    private void errorOccurred() {
+        utils.dismissDialog();
+        utils.error("Something went wrong. Try again.");
     }
 
     @Override

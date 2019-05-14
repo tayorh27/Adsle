@@ -22,6 +22,7 @@
                 android:orientation="vertical">
 
                 <LinearLayout
+                    android:id="@+id/data_layout"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="right"
@@ -51,279 +52,294 @@
                 </LinearLayout>
 
                 <LinearLayout
+                    android:id="@+id/cam_layout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_margin="15dp"
-                    android:orientation="horizontal"
-                    android:weightSum="100">
+                    android:orientation="vertical"
+                    android:visibility="gone">
 
-                    <androidx.cardview.widget.CardView
-                        android:layout_width="wrap_content"
+                    <LinearLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_weight="33"
-                        app:cardBackgroundColor="@color/colorPrimaryDark"
-                        app:cardCornerRadius="5dp"
-                        app:cardElevation="5dp"
-                        app:cardPreventCornerOverlap="true"
-                        app:contentPadding="15dp">
+                        android:layout_margin="15dp"
+                        android:orientation="horizontal"
+                        android:weightSum="100">
 
-                        <LinearLayout
+                        <androidx.cardview.widget.CardView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:orientation="vertical">
+                            android:layout_weight="33"
+                            app:cardBackgroundColor="@color/colorPrimaryDark"
+                            app:cardCornerRadius="5dp"
+                            app:cardElevation="5dp"
+                            app:cardPreventCornerOverlap="true"
+                            app:contentPadding="15dp">
 
-
-                            <androidx.appcompat.widget.AppCompatTextView
+                            <LinearLayout
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_gravity="center_horizontal"
-                                android:text="0"
-                                android:textColor="#fff"
-                                android:textSize="24sp"
-                                android:textStyle="bold" />
+                                android:orientation="vertical">
 
-                            <androidx.appcompat.widget.AppCompatTextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_gravity="center_horizontal"
-                                android:gravity="center"
-                                android:text="Overall Campaigns"
-                                android:textColor="#fff"
-                                android:textSize="12sp"
-                                android:textStyle="bold" />
-                        </LinearLayout>
 
-                    </androidx.cardview.widget.CardView>
+                                <androidx.appcompat.widget.AppCompatTextView
+                                    android:id="@+id/TMenu1"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_gravity="center_horizontal"
+                                    android:text="0"
+                                    android:textColor="#fff"
+                                    android:textSize="24sp"
+                                    android:textStyle="bold" />
 
-                    <androidx.cardview.widget.CardView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginLeft="10dp"
-                        android:layout_weight="33"
-                        app:cardBackgroundColor="@color/colorPrimaryDark"
-                        app:cardCornerRadius="5dp"
-                        app:cardElevation="5dp"
-                        app:cardPreventCornerOverlap="true"
-                        app:contentPadding="15dp">
+                                <androidx.appcompat.widget.AppCompatTextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_gravity="center_horizontal"
+                                    android:gravity="center"
+                                    android:text="Overall Campaigns"
+                                    android:textColor="#fff"
+                                    android:textSize="12sp"
+                                    android:textStyle="bold" />
+                            </LinearLayout>
 
-                        <LinearLayout
+                        </androidx.cardview.widget.CardView>
+
+                        <androidx.cardview.widget.CardView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:orientation="vertical">
+                            android:layout_marginLeft="10dp"
+                            android:layout_weight="33"
+                            app:cardBackgroundColor="@color/colorPrimaryDark"
+                            app:cardCornerRadius="5dp"
+                            app:cardElevation="5dp"
+                            app:cardPreventCornerOverlap="true"
+                            app:contentPadding="15dp">
 
-
-                            <androidx.appcompat.widget.AppCompatTextView
+                            <LinearLayout
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_gravity="center_horizontal"
-                                android:text="0"
-                                android:textColor="#fff"
-                                android:textSize="24sp"
-                                android:textStyle="bold" />
+                                android:orientation="vertical">
 
-                            <androidx.appcompat.widget.AppCompatTextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_gravity="center_horizontal"
-                                android:gravity="center"
-                                android:text="Active Campaigns"
-                                android:textColor="#fff"
-                                android:textSize="12sp"
-                                android:textStyle="bold" />
-                        </LinearLayout>
 
-                    </androidx.cardview.widget.CardView>
+                                <androidx.appcompat.widget.AppCompatTextView
+                                    android:id="@+id/TMenu2"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_gravity="center_horizontal"
+                                    android:text="0"
+                                    android:textColor="#fff"
+                                    android:textSize="24sp"
+                                    android:textStyle="bold" />
 
-                    <androidx.cardview.widget.CardView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginLeft="10dp"
-                        android:layout_weight="33"
-                        app:cardBackgroundColor="@color/colorPrimaryDark"
-                        app:cardCornerRadius="5dp"
-                        app:cardElevation="5dp"
-                        app:cardPreventCornerOverlap="true"
-                        app:contentPadding="15dp">
+                                <androidx.appcompat.widget.AppCompatTextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_gravity="center_horizontal"
+                                    android:gravity="center"
+                                    android:text="Active Campaigns"
+                                    android:textColor="#fff"
+                                    android:textSize="12sp"
+                                    android:textStyle="bold" />
+                            </LinearLayout>
 
-                        <LinearLayout
+                        </androidx.cardview.widget.CardView>
+
+                        <androidx.cardview.widget.CardView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:orientation="vertical">
+                            android:layout_marginLeft="10dp"
+                            android:layout_weight="33"
+                            app:cardBackgroundColor="@color/colorPrimaryDark"
+                            app:cardCornerRadius="5dp"
+                            app:cardElevation="5dp"
+                            app:cardPreventCornerOverlap="true"
+                            app:contentPadding="15dp">
 
-
-                            <androidx.appcompat.widget.AppCompatTextView
+                            <LinearLayout
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_gravity="center_horizontal"
-                                android:text="0"
-                                android:textColor="#fff"
-                                android:textSize="24sp"
-                                android:textStyle="bold" />
-
-                            <androidx.appcompat.widget.AppCompatTextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_gravity="center_horizontal"
-                                android:gravity="center"
-                                android:text="In-Active Campaigns"
-                                android:textColor="#fff"
-                                android:textSize="12sp"
-                                android:textStyle="bold" />
-                        </LinearLayout>
-
-                    </androidx.cardview.widget.CardView>
-
-                </LinearLayout>
+                                android:orientation="vertical">
 
 
-                <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="15dp"
-                    android:layout_marginRight="15dp">
+                                <androidx.appcompat.widget.AppCompatTextView
+                                    android:id="@+id/TMenu3"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_gravity="center_horizontal"
+                                    android:text="0"
+                                    android:textColor="#fff"
+                                    android:textSize="24sp"
+                                    android:textStyle="bold" />
 
-                    <androidx.appcompat.widget.AppCompatTextView
-                        android:layout_width="wrap_content"
+                                <androidx.appcompat.widget.AppCompatTextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_gravity="center_horizontal"
+                                    android:gravity="center"
+                                    android:text="In-Active Campaigns"
+                                    android:textColor="#fff"
+                                    android:textSize="12sp"
+                                    android:textStyle="bold" />
+                            </LinearLayout>
+
+                        </androidx.cardview.widget.CardView>
+
+                    </LinearLayout>
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_gravity="center_horizontal"
-                        android:text="Current Campaign"
-                        android:textColor="@color/colorPrimaryDark"
-                        android:textSize="14sp" />
+                        android:layout_marginLeft="15dp"
+                        android:layout_marginRight="15dp">
 
-                    <androidx.appcompat.widget.AppCompatTextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_alignParentRight="true"
-                        android:layout_gravity="center_horizontal"
-                        android:text="@string/view_cam"
-                        android:textColor="@color/colorPrimaryDark"
-                        android:textSize="14sp" />
-                </RelativeLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="15dp"
-                    android:layout_marginTop="5dp"
-                    android:layout_marginRight="15dp"
-                    android:orientation="horizontal"
-                    android:weightSum="100">
-
-                    <androidx.cardview.widget.CardView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="33"
-                        app:cardBackgroundColor="@color/colorPrimaryDark"
-                        app:cardCornerRadius="5dp"
-                        app:cardElevation="5dp"
-                        app:cardPreventCornerOverlap="true"
-                        app:contentPadding="15dp">
-
-                        <LinearLayout
+                        <androidx.appcompat.widget.AppCompatTextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:orientation="vertical">
+                            android:layout_gravity="center_horizontal"
+                            android:text="Current Campaign"
+                            android:textColor="@color/colorPrimaryDark"
+                            android:textSize="14sp" />
 
-
-                            <androidx.appcompat.widget.AppCompatTextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_gravity="center_horizontal"
-                                android:text="0"
-                                android:textColor="#fff"
-                                android:textSize="24sp"
-                                android:textStyle="bold" />
-
-                            <androidx.appcompat.widget.AppCompatTextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_gravity="center_horizontal"
-                                android:gravity="center"
-                                android:text="Overall Reach"
-                                android:textColor="#fff"
-                                android:textSize="12sp"
-                                android:textStyle="bold" />
-                        </LinearLayout>
-
-                    </androidx.cardview.widget.CardView>
-
-                    <androidx.cardview.widget.CardView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginLeft="10dp"
-                        android:layout_weight="33"
-                        app:cardBackgroundColor="@color/colorPrimaryDark"
-                        app:cardCornerRadius="5dp"
-                        app:cardElevation="5dp"
-                        app:cardPreventCornerOverlap="true"
-                        app:contentPadding="15dp">
-
-                        <LinearLayout
+                        <androidx.appcompat.widget.AppCompatTextView
+                            android:id="@+id/cam_current_view"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:orientation="vertical">
+                            android:layout_alignParentRight="true"
+                            android:layout_gravity="center_horizontal"
+                            android:text="@string/view_cam"
+                            android:textColor="@color/colorPrimaryDark"
+                            android:textSize="14sp" />
+                    </RelativeLayout>
 
-
-                            <androidx.appcompat.widget.AppCompatTextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_gravity="center_horizontal"
-                                android:text="0"
-                                android:textColor="#fff"
-                                android:textSize="24sp"
-                                android:textStyle="bold" />
-
-                            <androidx.appcompat.widget.AppCompatTextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_gravity="center_horizontal"
-                                android:gravity="center"
-                                android:text="Overall Impressions"
-                                android:textColor="#fff"
-                                android:textSize="12sp"
-                                android:textStyle="bold" />
-                        </LinearLayout>
-
-                    </androidx.cardview.widget.CardView>
-
-                    <androidx.cardview.widget.CardView
-                        android:layout_width="wrap_content"
+                    <LinearLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginLeft="10dp"
-                        android:layout_weight="33"
-                        app:cardBackgroundColor="@color/colorPrimaryDark"
-                        app:cardCornerRadius="5dp"
-                        app:cardElevation="5dp"
-                        app:cardPreventCornerOverlap="true"
-                        app:contentPadding="15dp">
+                        android:layout_marginLeft="15dp"
+                        android:layout_marginTop="5dp"
+                        android:layout_marginRight="15dp"
+                        android:orientation="horizontal"
+                        android:weightSum="100">
 
-                        <LinearLayout
+                        <androidx.cardview.widget.CardView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:orientation="vertical">
+                            android:layout_weight="33"
+                            app:cardBackgroundColor="@color/colorPrimaryDark"
+                            app:cardCornerRadius="5dp"
+                            app:cardElevation="5dp"
+                            app:cardPreventCornerOverlap="true"
+                            app:contentPadding="15dp">
 
-
-                            <androidx.appcompat.widget.AppCompatTextView
+                            <LinearLayout
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_gravity="center_horizontal"
-                                android:text="0"
-                                android:textColor="#fff"
-                                android:textSize="24sp"
-                                android:textStyle="bold" />
+                                android:orientation="vertical">
 
-                            <androidx.appcompat.widget.AppCompatTextView
+
+                                <androidx.appcompat.widget.AppCompatTextView
+                                    android:id="@+id/cam_menu1"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_gravity="center_horizontal"
+                                    android:text="0"
+                                    android:textColor="#fff"
+                                    android:textSize="24sp"
+                                    android:textStyle="bold" />
+
+                                <androidx.appcompat.widget.AppCompatTextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_gravity="center_horizontal"
+                                    android:gravity="center"
+                                    android:text="Overall Reach"
+                                    android:textColor="#fff"
+                                    android:textSize="12sp"
+                                    android:textStyle="bold" />
+                            </LinearLayout>
+
+                        </androidx.cardview.widget.CardView>
+
+                        <androidx.cardview.widget.CardView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="10dp"
+                            android:layout_weight="33"
+                            app:cardBackgroundColor="@color/colorPrimaryDark"
+                            app:cardCornerRadius="5dp"
+                            app:cardElevation="5dp"
+                            app:cardPreventCornerOverlap="true"
+                            app:contentPadding="15dp">
+
+                            <LinearLayout
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_gravity="center_horizontal"
-                                android:gravity="center"
-                                android:text="Overall Clicks"
-                                android:textColor="#fff"
-                                android:textSize="12sp"
-                                android:textStyle="bold" />
-                        </LinearLayout>
+                                android:orientation="vertical">
 
-                    </androidx.cardview.widget.CardView>
+
+                                <androidx.appcompat.widget.AppCompatTextView
+                                    android:id="@+id/cam_menu2"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_gravity="center_horizontal"
+                                    android:text="0"
+                                    android:textColor="#fff"
+                                    android:textSize="24sp"
+                                    android:textStyle="bold" />
+
+                                <androidx.appcompat.widget.AppCompatTextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_gravity="center_horizontal"
+                                    android:gravity="center"
+                                    android:text="Overall Impressions"
+                                    android:textColor="#fff"
+                                    android:textSize="12sp"
+                                    android:textStyle="bold" />
+                            </LinearLayout>
+
+                        </androidx.cardview.widget.CardView>
+
+                        <androidx.cardview.widget.CardView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="10dp"
+                            android:layout_weight="33"
+                            app:cardBackgroundColor="@color/colorPrimaryDark"
+                            app:cardCornerRadius="5dp"
+                            app:cardElevation="5dp"
+                            app:cardPreventCornerOverlap="true"
+                            app:contentPadding="15dp">
+
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical">
+
+
+                                <androidx.appcompat.widget.AppCompatTextView
+                                    android:id="@+id/cam_menu3"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_gravity="center_horizontal"
+                                    android:text="0"
+                                    android:textColor="#fff"
+                                    android:textSize="24sp"
+                                    android:textStyle="bold" />
+
+                                <androidx.appcompat.widget.AppCompatTextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_gravity="center_horizontal"
+                                    android:gravity="center"
+                                    android:text="Overall Clicks"
+                                    android:textColor="#fff"
+                                    android:textSize="12sp"
+                                    android:textStyle="bold" />
+                            </LinearLayout>
+
+                        </androidx.cardview.widget.CardView>
+
+                    </LinearLayout>
 
                 </LinearLayout>
 

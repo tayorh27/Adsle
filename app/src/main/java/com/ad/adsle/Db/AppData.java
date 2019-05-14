@@ -74,6 +74,7 @@ public class AppData {
         editor.putString("referralLink", user.getReferralLink());
         editor.putString("msgId", user.getMsgId());
         editor.putString("deviceId", user.getDeviceId());
+        editor.putString("created_date", user.getCreated_date());
         editor.apply();
     }
 
@@ -91,7 +92,8 @@ public class AppData {
                 prefs.getString("referralCode", ""),
                 prefs.getString("referralLink", ""),
                 prefs.getString("msgId", ""),
-                prefs.getString("deviceId", "")
+                prefs.getString("deviceId", ""),
+                prefs.getString("created_date", "")
         );
     }
 

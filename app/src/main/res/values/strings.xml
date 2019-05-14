@@ -98,4 +98,6 @@
     <string name="title_activity_topup">Adsle Topup</string>
     <string name="view_cam"><u>View Campaign</u></string>
     <string name="title_activity_create_campaign">Create New Campaign</string>
+    <string name="title_activity_payment">Make Payment</string>
+    <string name="title_activity_transaction">Campaign Transactions</string>
 </resources>

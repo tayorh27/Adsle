@@ -16,6 +16,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.ad.adsle.Db.AppData;
+import com.ad.adsle.Information.DeviceDetails;
+import com.ad.adsle.Information.LocationDetails;
 import com.ad.adsle.Information.User;
 import com.ad.adsle.R;
 import com.ad.adsle.Util.Utils;
@@ -135,25 +137,47 @@ public class LoginActivity extends AppCompatActivity {
                                                 data.StoreUsers(user);
                                                 data.setLogged(true);
 
-                                                FirebaseFirestore dbI = FirebaseFirestore.getInstance();
-                                                dbI.collection("users").document(email).collection("user-data").document("interests").get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                                                db.collection("users").document(email).collection("user-data").document("location-data").get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                                                     @Override
                                                     public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                                                         if (task.isSuccessful()) {
-                                                            ArrayList<String> interests = (ArrayList<String>) task.getResult().get("data");
-                                                            if (interests.size() > 0) {
-                                                                data.setInterestSelected(true);
-                                                            }
-                                                            utils.dismissDialog();
-                                                            if (data.getInterestSelected()) {
-                                                                Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
-                                                                startActivity(intent);
-                                                                finish();
-                                                            } else {
-                                                                Intent intent = new Intent(LoginActivity.this, InterestActivity.class);
-                                                                startActivity(intent);
-                                                                finish();
-                                                            }
+                                                            LocationDetails locationDetails = task.getResult().toObject(LocationDetails.class);
+                                                            data.StoreLocationDetails(locationDetails);
+                                                            db.collection("users").document(email).collection("user-data").document("device-details").get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                                                                @Override
+                                                                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                                                                    if (task.isSuccessful()) {
+                                                                        DeviceDetails deviceDetails = task.getResult().toObject(DeviceDetails.class);
+                                                                        data.StoreDeviceDetails(deviceDetails);
+                                                                        FirebaseFirestore dbI = FirebaseFirestore.getInstance();
+                                                                        dbI.collection("users").document(email).collection("user-data").document("interests").get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                                                                            @Override
+                                                                            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                                                                                if (task.isSuccessful()) {
+                                                                                    ArrayList<String> interests = (ArrayList<String>) task.getResult().get("data");
+                                                                                    if (interests.size() > 0) {
+                                                                                        data.setInterestSelected(true);
+                                                                                    }
+                                                                                    utils.dismissDialog();
+                                                                                    if (data.getInterestSelected()) {
+                                                                                        Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
+                                                                                        startActivity(intent);
+                                                                                        finish();
+                                                                                    } else {
+                                                                                        Intent intent = new Intent(LoginActivity.this, InterestActivity.class);
+                                                                                        startActivity(intent);
+                                                                                        finish();
+                                                                                    }
+                                                                                } else {
+                                                                                    errorOccurred();
+                                                                                }
+                                                                            }
+                                                                        });
+                                                                    } else {
+                                                                        errorOccurred();
+                                                                    }
+                                                                }
+                                                            });
                                                         } else {
                                                             errorOccurred();
                                                         }

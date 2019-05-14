@@ -88,7 +88,7 @@ public class PlansActivity extends AppCompatActivity implements ClickListener {
     }
 
     @Override
-    public void onPlanClick(View view, int position) {
+    public void onViewClick(View view, int position) {
         Plans clickedPlan = myPlans.get(position);
         Intent intent = new Intent();
         intent.putExtra("resultPlan", clickedPlan);

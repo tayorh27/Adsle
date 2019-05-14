@@ -30,7 +30,7 @@
                 android:layout_height="wrap_content"
                 android:background="@drawable/editbg"
                 android:hint="Campaign Title"
-                android:inputType="textEmailAddress"
+                android:inputType="text"
                 android:maxLines="1"
                 android:padding="10dp"
                 android:singleLine="true"

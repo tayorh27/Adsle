@@ -28,6 +28,8 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
+import id.zelory.compressor.Compressor;
+
 public class Utils {
 
     private Context mContext = null;
@@ -260,6 +262,17 @@ public class Utils {
             return 1;
         }
         return -1;
+    }
+
+    public Bitmap compressedBitmap(String file) {
+        File imageFile = new File(file);
+        Bitmap compressor = new Compressor(mContext)
+                .setMaxWidth(680)
+                .setMaxHeight(240)
+                .setQuality(100)
+                .setCompressFormat(Bitmap.CompressFormat.PNG)
+                .compressToBitmap(imageFile);
+        return compressor;
     }
 
     public String getExactDataValue(String byteValue) {

@@ -64,7 +64,7 @@ public class InviteActivity extends AppCompatActivity {
     }
 
     private void sendInvite() {
-        String txt = "Hey,\n\nAdsle App is a fast, simple and secured app that I use to get affordable data with bonuses by just viewing ads.\n\nGet it for free at\n" + user.getReferralLink();
+        String txt = "Hey,\n\nAdsle App is a fast, simple app that I use to get over 2gb of  FREE mobile data monthly by just allowing it to show ads on my phone home screen.\n\nAnd it does not intrude or disturb the way I use my phone.\n\nGet it for free at\n" + user.getReferralLink();
         Intent intent = new Intent(Intent.ACTION_SEND);
         intent.setType("text/plain");
         intent.putExtra(Intent.EXTRA_TEXT, txt);
@@ -120,6 +120,8 @@ public class InviteActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         if (id == android.R.id.home) {
+            //
+            startActivity(new Intent(InviteActivity.this, HomeActivity.class));
             finish();
         }
         return super.onOptionsItemSelected(item);
