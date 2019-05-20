@@ -9,6 +9,7 @@ import androidx.annotation.NonNull;
 import com.ad.adsle.Activities.LoginActivity;
 import com.ad.adsle.Information.DeviceDetails;
 import com.ad.adsle.Information.LocationDetails;
+import com.ad.adsle.Information.Settings;
 import com.ad.adsle.Information.User;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -94,6 +95,45 @@ public class AppData {
                 prefs.getString("msgId", ""),
                 prefs.getString("deviceId", ""),
                 prefs.getString("created_date", "")
+        );
+    }
+
+    public void StoreSettings(Settings settings) {
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putLong("signup_data", settings.getSignup_data());
+        editor.putLong("invite_bonus_data", settings.getInvite_bonus_data());
+        editor.putLong("reach_data", settings.getReach_data());
+        editor.putLong("click_data", settings.getClick_data());
+        editor.putLong("app_install_data", settings.getApp_install_data());
+        editor.putLong("withdrawal_data_check", settings.getWithdrawal_data_check());
+        editor.putLong("total_users", settings.getTotal_users());
+        editor.putInt("amount_per_reach", settings.getAmount_per_reach());
+        editor.putInt("amount_per_click", settings.getAmount_per_click());
+        editor.putInt("amount_per_app_install", settings.getAmount_per_app_install());
+        editor.apply();
+    }
+
+    public Settings getSettings() {
+        return new Settings(
+                prefs.getLong("signup_data", 104857600),
+                prefs.getLong("invite_bonus_data", 104857600),
+                prefs.getLong("reach_data", 10485760),
+                prefs.getLong("click_data", 15728640),
+                prefs.getLong("app_install_data", 73400319),
+                prefs.getLong("withdrawal_data_check", 524288000),
+                prefs.getLong("total_users", 0),
+                prefs.getInt("amount_per_reach", 25),
+                prefs.getInt("amount_per_click", 40),
+                prefs.getInt("amount_per_app_install", 120)
+        );
+    }
+
+    public User getCampaignUser() {
+        return new User(
+                prefs.getString("id", ""),
+                prefs.getInt("age", 0),
+                prefs.getString("gender", ""),
+                prefs.getString("religion", "")
         );
     }
 

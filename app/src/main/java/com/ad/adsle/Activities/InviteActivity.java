@@ -12,8 +12,10 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.TextView;
 
 import com.ad.adsle.Db.AppData;
+import com.ad.adsle.Information.Settings;
 import com.ad.adsle.Information.User;
 import com.ad.adsle.R;
 import com.ad.adsle.Util.Utils;
@@ -31,7 +33,9 @@ public class InviteActivity extends AppCompatActivity {
 
     AppData data;
     User user;
+    Settings settings;
     Utils utils;
+    TextView tvInvite;
 
     boolean isLinkDone = false;
     String refLink = "";
@@ -52,6 +56,11 @@ public class InviteActivity extends AppCompatActivity {
         data = new AppData(InviteActivity.this);
         utils = new Utils(InviteActivity.this);
         user = data.getUser();
+        settings = data.getSettings();
+
+        tvInvite = findViewById(R.id.tvInviteText);
+        String dataToGet = utils.getExactDataValue(String.valueOf(settings.getInvite_bonus_data()));
+        tvInvite.setText("Invite 5 of your friends and get FREE " + dataToGet + " data when they signup using your referral link.");
     }
 
     public void SendInvite(View view) {
@@ -75,7 +84,7 @@ public class InviteActivity extends AppCompatActivity {
 
     private void BuildDynamicLink(String ref, String email) {
         Task<ShortDynamicLink> shortLinkTask = FirebaseDynamicLinks.getInstance().createDynamicLink()
-                .setLink(Uri.parse("http://adsle.com?ref_code=" + ref + "&email=" + email + "&data=20971520"))
+                .setLink(Uri.parse("http://adsle.com?ref_code=" + ref + "&email=" + email + "&data=" + settings.getInvite_bonus_data()))
                 .setDomainUriPrefix("https://adsle.page.link")
                 .setAndroidParameters(new DynamicLink.AndroidParameters.Builder("com.ad.adsle")
                         .build())

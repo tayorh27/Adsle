@@ -27,6 +27,7 @@ import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -36,6 +37,7 @@ import com.ad.adsle.Db.AppData;
 import com.ad.adsle.Information.AppDetail;
 import com.ad.adsle.Information.CampaignInformation;
 import com.ad.adsle.Information.LocationDetails;
+import com.ad.adsle.Information.Settings;
 import com.ad.adsle.Information.Transactions;
 import com.ad.adsle.Information.User;
 import com.ad.adsle.R;
@@ -85,25 +87,27 @@ import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper;
 
 public class CreateCampaignActivity extends AppCompatActivity implements DatePickerDialog.OnDateSetListener {
 
-    private EditText inputCamTitle, inputCamLink, inputReached;
-    Button btnInterest, btnExpire;
+    private EditText inputCamTitle, inputCamLink, inputReached, inputApplicationID;
+    Button btnInterest, btnExpire, btnExpire2;
     Spinner inputGender, inputReligion, inputAdLinkOption;
     TextView tvAgeRange, tvSummary;
+    LinearLayout tvAT;
     CrystalRangeSeekbar rangeSeekbar;
     EasyFlipView easyFlipView;
-    AutocompleteSupportFragment autocompleteFragment;
+    Button autocompleteFragment;
     ImageView imgCamImage;
     private int RESULT_LOAD_IMG = 19;
 
-    String selected_date = "";
+    String selected_date = "", end_selected_date = "";
 
     AppData data;
 
-    String cam_title, cam_age, cam_gender, cam_religion, cam_link_options, ad_image, cam_link_text, cam_reached;
+    String cam_title, cam_age, cam_gender, cam_religion, cam_link_options, ad_image, cam_link_text, cam_reached, cam_application_id;
     boolean isExist = false;
     FirebaseAuth auth;
     Utils utils;
     User user;
+    Settings settings;
     private PackageManager manager;
     private ArrayList<AppDetail> apps;
     boolean isPlaceSelected = false;
@@ -112,13 +116,19 @@ public class CreateCampaignActivity extends AppCompatActivity implements DatePic
     ArrayList<String> interests = new ArrayList<>();
     ArrayList<String> selected_interests = new ArrayList<>();
 
+    ArrayList<String> locations = new ArrayList<>();
+    ArrayList<String> selected_locations = new ArrayList<>();
+
     long total_amount = 0;
     CampaignInformation campaignInformation;
 
     StorageReference storageReference;
     boolean isPaymentMade = false;
     String authCode, card_reference;
-    String _minValue = "0", _maxValue = "100";
+    int _minValue = 0, _maxValue = 100;
+
+    boolean isStart = false, isEnd = false;
+    long people = 0;
 
     @Override
     protected void attachBaseContext(Context newBase) {
@@ -141,48 +151,110 @@ public class CreateCampaignActivity extends AppCompatActivity implements DatePic
             return;
         }
         user = data.getUser();
+        settings = data.getSettings();
         utils = new Utils(CreateCampaignActivity.this);
         inputCamTitle = findViewById(R.id.cam_title);
         inputCamLink = findViewById(R.id.cam_link);
         inputReached = findViewById(R.id.cam_num_of_reached);
         tvAgeRange = findViewById(R.id.tvDob);
         tvSummary = findViewById(R.id.cam_summary);
+        tvAT = findViewById(R.id.tvAppTitle);
         rangeSeekbar = findViewById(R.id.rangeSeekbar1);
         inputGender = findViewById(R.id.gender);
         inputReligion = findViewById(R.id.religion);
         inputAdLinkOption = findViewById(R.id.cam_link_option);
+        inputApplicationID = findViewById(R.id.cam_app_id);
         btnInterest = findViewById(R.id.cam_interest);
         btnExpire = findViewById(R.id.cam_duration);
+        btnExpire2 = findViewById(R.id.cam_duration_end);
         easyFlipView = findViewById(R.id.easyFlipView);
         imgCamImage = findViewById(R.id.cam_image);
+        autocompleteFragment = findViewById(R.id.autocomplete_fragment);
 
-        autocompleteFragment = (AutocompleteSupportFragment)
-                getSupportFragmentManager().findFragmentById(R.id.autocomplete_fragment);
-        autocompleteFragment.setPlaceFields(Arrays.asList(Place.Field.ID, Place.Field.NAME));
-        autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
+//        autocompleteFragment = (AutocompleteSupportFragment)
+//                getSupportFragmentManager().findFragmentById(R.id.autocomplete_fragment);
+//        autocompleteFragment.setPlaceFields(Arrays.asList(Place.Field.ID, Place.Field.NAME));
+//        autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
+//            @Override
+//            public void onPlaceSelected(@NonNull Place place) {
+//                // TODO: Get info about the selected place.
+//                isPlaceSelected = true;
+//                locationDetails = new LocationDetails(place.getName(), place.getName(), place.getName(), place.getAddress(), place.getAddress(), place.getLatLng().latitude + "," + place.getLatLng().longitude);
+//            }
+//
+//            @Override
+//            public void onError(@NonNull Status status) {
+//                // TODO: Handle the error.
+//                Log.e("onError", "An error occurred: " + status);
+//            }
+//        });
+        autocompleteFragment.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onPlaceSelected(@NonNull Place place) {
-                // TODO: Get info about the selected place.
-                isPlaceSelected = true;
-                locationDetails = new LocationDetails(place.getName(), place.getName(), place.getName(), place.getAddress(), place.getAddress(), place.getLatLng().latitude + "," + place.getLatLng().longitude);
-            }
-
-            @Override
-            public void onError(@NonNull Status status) {
-                // TODO: Handle the error.
-                Log.e("onError", "An error occurred: " + status);
+            public void onClick(View v) {
+                if (locations.size() <= 0) {
+                    utils.error("Please refresh page.");
+                    return;
+                }
+                new MaterialDialog.Builder(CreateCampaignActivity.this)
+                        .title("Select multiple locations")
+                        .items(locations)
+                        .itemsCallbackMultiChoice(null, new MaterialDialog.ListCallbackMultiChoice() {
+                            @Override
+                            public boolean onSelection(MaterialDialog dialog, Integer[] which, CharSequence[] text) {
+                                selected_locations.clear();
+                                for (CharSequence item : text) {
+                                    selected_locations.add(String.valueOf(item));
+                                }
+                                StringBuilder _interest = new StringBuilder();
+                                if (selected_locations.size() > 0) {
+                                    for (String tx : selected_locations) {
+                                        _interest.append(tx + ",");
+                                    }
+                                    String output = _interest.toString().substring(0, _interest.toString().length() - 1);
+                                    autocompleteFragment.setText(output);
+                                }
+                                return true;
+                            }
+                        }).positiveText("Done")
+                        .onPositive(new MaterialDialog.SingleButtonCallback() {
+                            @Override
+                            public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                                dialog.dismiss();
+                            }
+                        })
+                        .show();
             }
         });
 
         btnExpire.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                isStart = true;
+                isEnd = false;
                 Calendar calendar = Calendar.getInstance();
                 new SpinnerDatePickerDialogBuilder()
                         .context(CreateCampaignActivity.this)
                         .callback(CreateCampaignActivity.this)
                         .showTitle(true)
-                        .showDaySpinner(true)
+                        .showDaySpinner(false)
+                        .defaultDate(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH))
+                        .minDate(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH))
+                        .build()
+                        .show();
+            }
+        });
+
+        btnExpire2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                isStart = false;
+                isEnd = true;
+                Calendar calendar = Calendar.getInstance();
+                new SpinnerDatePickerDialogBuilder()
+                        .context(CreateCampaignActivity.this)
+                        .callback(CreateCampaignActivity.this)
+                        .showTitle(true)
+                        .showDaySpinner(false)
                         .defaultDate(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH))
                         .minDate(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH))
                         .build()
@@ -198,19 +270,26 @@ public class CreateCampaignActivity extends AppCompatActivity implements DatePic
                     case 0:
                         inputCamLink.setHint("Enter app link");
                         inputCamLink.setInputType(InputType.TYPE_TEXT_VARIATION_URI);
+                        tvAT.setVisibility(View.VISIBLE);
+                        inputCamLink.setVisibility(View.VISIBLE);
                         break;
                     case 1:
-                        inputCamLink.setHint("Enter phone number");
-                        inputCamLink.setInputType(InputType.TYPE_CLASS_PHONE);
+                        inputCamLink.setHint("Enter url link");
+                        inputCamLink.setInputType(InputType.TYPE_TEXT_VARIATION_URI);
+                        tvAT.setVisibility(View.GONE);
+                        inputCamLink.setVisibility(View.VISIBLE);
                         break;
                     case 2:
                         inputCamLink.setHint("Enter email address");
                         inputCamLink.setInputType(InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
+                        tvAT.setVisibility(View.GONE);
+                        inputCamLink.setVisibility(View.GONE);
                         break;
-                    case 3:
-                        inputCamLink.setHint("Enter url link");
-                        inputCamLink.setInputType(InputType.TYPE_TEXT_VARIATION_URI);
-                        break;
+                }
+                if (!TextUtils.isEmpty(selected_date) && !TextUtils.isEmpty(end_selected_date)) {
+                    String[] date = selected_date.split("-");
+                    String[] end_date = end_selected_date.split("-");
+                    summaryMaker(false, people, Integer.parseInt(date[0]), Integer.parseInt(date[1]), Integer.parseInt(date[2]), Integer.parseInt(end_date[0]), Integer.parseInt(end_date[1]), Integer.parseInt(end_date[2]));
                 }
             }
 
@@ -230,16 +309,23 @@ public class CreateCampaignActivity extends AppCompatActivity implements DatePic
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 String reached = String.valueOf(s);
                 String[] date = selected_date.split("-");
+                String[] end_date = end_selected_date.split("-");
                 if (!TextUtils.isEmpty(reached)) {
-                    if (!TextUtils.isEmpty(selected_date)) {
-                        int people = Integer.parseInt(reached);
-                        summaryMaker(false, people, Integer.parseInt(date[0]), Integer.parseInt(date[1]), Integer.parseInt(date[2]));
+                    if (!TextUtils.isEmpty(selected_date) && !TextUtils.isEmpty(end_selected_date)) {
+                        people = Long.parseLong(reached);
+                        long total_users = settings.getTotal_users();
+                        if (people > total_users) {
+                            inputReached.setText("");
+                            Toast.makeText(CreateCampaignActivity.this, "Maximum number of reach cannot exceed " + total_users, Toast.LENGTH_LONG).show();
+                            return;
+                        }
+                        summaryMaker(false, people, Integer.parseInt(date[0]), Integer.parseInt(date[1]), Integer.parseInt(date[2]), Integer.parseInt(end_date[0]), Integer.parseInt(end_date[1]), Integer.parseInt(end_date[2]));
                     }
                 } else {
-                    if (!TextUtils.isEmpty(selected_date)) {
-                        summaryMaker(false, 0, Integer.parseInt(date[0]), Integer.parseInt(date[1]), Integer.parseInt(date[2]));
+                    if (!TextUtils.isEmpty(selected_date) && !TextUtils.isEmpty(end_selected_date)) {
+                        summaryMaker(false, 0, Integer.parseInt(date[0]), Integer.parseInt(date[1]), Integer.parseInt(date[2]), Integer.parseInt(end_date[0]), Integer.parseInt(end_date[1]), Integer.parseInt(end_date[2]));
                     } else {
-                        summaryMaker(true, 0, 0, 0, 0);
+                        summaryMaker(true, 0, 0, 0, 0, 0, 0, 0);
                     }
                 }
             }
@@ -253,9 +339,9 @@ public class CreateCampaignActivity extends AppCompatActivity implements DatePic
         rangeSeekbar.setOnRangeSeekbarChangeListener(new OnRangeSeekbarChangeListener() {
             @Override
             public void valueChanged(Number minValue, Number maxValue) {
-                tvAgeRange.setText(String.valueOf(minValue) + " - " + String.valueOf(maxValue));
-                _minValue = String.valueOf(minValue);
-                _maxValue = String.valueOf(maxValue);
+                tvAgeRange.setText(String.valueOf(minValue) + " - " + String.valueOf(maxValue) + "+");
+                _minValue = Integer.parseInt(String.valueOf(minValue));
+                _maxValue = Integer.parseInt(String.valueOf(maxValue));
             }
         });
 
@@ -303,8 +389,8 @@ public class CreateCampaignActivity extends AppCompatActivity implements DatePic
                         .show();
             }
         });
-        summaryMaker(true, 0, 0, 0, 0);
-        loadInterests();
+        summaryMaker(true, 0, 0, 0, 0, 0, 0, 0);
+        loadInterestsAndLocations();
 
     }
 
@@ -314,6 +400,7 @@ public class CreateCampaignActivity extends AppCompatActivity implements DatePic
         String[] _link_options = getResources().getStringArray(R.array.cam_link_options);
 
         cam_title = inputCamTitle.getText().toString().trim();
+        cam_application_id = inputApplicationID.getText().toString().trim();
         cam_link_text = inputCamLink.getText().toString().trim();
         cam_reached = inputReached.getText().toString().trim();
         cam_age = tvAgeRange.getText().toString().replace(" ", "");
@@ -326,16 +413,25 @@ public class CreateCampaignActivity extends AppCompatActivity implements DatePic
             return;
         }
 
-//        if (!isPlaceSelected) {
-//            Toast.makeText(getApplicationContext(), "Enter target location!", Toast.LENGTH_SHORT).show();
-//            return;
-//        }
-
-        locationDetails = new LocationDetails("EX", "EX", "EX", "EX", "XE", "XE");
-
-        if (TextUtils.isEmpty(cam_link_text)) {
-            Toast.makeText(getApplicationContext(), "Enter ad link!", Toast.LENGTH_SHORT).show();
+        if (selected_locations.isEmpty()) {
+            Toast.makeText(getApplicationContext(), "Enter target locations!", Toast.LENGTH_SHORT).show();
             return;
+        }
+
+        //locationDetails = new LocationDetails("EX", "EX", "EX", "EX", "XE", "XE");
+
+        if (inputAdLinkOption.getSelectedItemPosition() < 2) {
+            if (TextUtils.isEmpty(cam_link_text)) {
+                Toast.makeText(getApplicationContext(), "Enter ad link!", Toast.LENGTH_SHORT).show();
+                return;
+            }
+        }
+
+        if (inputAdLinkOption.getSelectedItemPosition() == 0) {
+            if (TextUtils.isEmpty(cam_application_id)) {
+                Toast.makeText(getApplicationContext(), "Enter package id of your app!", Toast.LENGTH_SHORT).show();
+                return;
+            }
         }
 
         if (TextUtils.isEmpty(cam_reached)) {
@@ -349,14 +445,35 @@ public class CreateCampaignActivity extends AppCompatActivity implements DatePic
         }
 
         if (TextUtils.isEmpty(selected_date)) {
-            Toast.makeText(getApplicationContext(), "Set a duration for your campaign", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(), "Set a start date for your campaign", Toast.LENGTH_SHORT).show();
             return;
         }
+
+        if (TextUtils.isEmpty(end_selected_date)) {
+            Toast.makeText(getApplicationContext(), "Set an end date for your campaign", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        ArrayList<String> create_gender = new ArrayList<>();
+        ArrayList<String> create_religion = new ArrayList<>();
+        if (inputGender.getSelectedItemPosition() == 2) {
+            create_gender.add("Male");
+            create_gender.add("Female");
+        } else {
+            create_gender.add(cam_gender);
+        }
+
+        if (inputReligion.getSelectedItemPosition() == 2) {
+            create_religion.add("Christianity");
+            create_religion.add("Islam");
+        } else {
+            create_religion.add(cam_religion);
+        }
+
         DatabaseReference refId = FirebaseDatabase.getInstance().getReference();
         String id = refId.push().getKey();
-        campaignInformation = new CampaignInformation(id, user.getEmail(), cam_title, _minValue, _maxValue, cam_gender, cam_religion, locationDetails, selected_interests, "", cam_link_options, cam_link_text, cam_reached, selected_date, String.valueOf(total_amount),
-                false, "0", "0", "0",
-                "0", new Date().toLocaleString());
+        campaignInformation = new CampaignInformation(id, user.getEmail(), cam_title, _minValue, _maxValue, create_gender, create_religion, selected_locations, selected_interests, "", cam_link_options, cam_link_text, Long.parseLong(cam_reached), selected_date, end_selected_date, String.valueOf(total_amount),
+                cam_application_id, false, 0, 0, 0,
+                0, new Date().toLocaleString());
         if (isPaymentMade) {
             isPaymentMade = true;
             campaignInformation.setStatus(true);
@@ -369,7 +486,7 @@ public class CreateCampaignActivity extends AppCompatActivity implements DatePic
         }
     }
 
-    private void summaryMaker(boolean start, int people, int day, int month, int year) {
+    private void summaryMaker(boolean start, long people, int start_day, int start_month, int start_year, int end_day, int end_month, int end_year) {
         String[] months = {"January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"};
         Calendar calendar = Calendar.getInstance();
         int d = calendar.get(Calendar.DAY_OF_MONTH);
@@ -379,16 +496,20 @@ public class CreateCampaignActivity extends AppCompatActivity implements DatePic
             tvSummary.setText("You will spend ₦0.00. This ad will run for 0 day, ending on " + months[m] + " " + d + ", " + y + ".");
         } else {
 
-            Date firstDate = calendar.getTime();
+            Calendar start_calendar = Calendar.getInstance();
+            start_calendar.set(Calendar.DAY_OF_MONTH, start_day);
+            start_calendar.set(Calendar.MONTH, start_month);
+            start_calendar.set(Calendar.YEAR, start_year);
+            Date startDate = start_calendar.getTime();
 
             Calendar cal = Calendar.getInstance();
-            cal.set(Calendar.DAY_OF_MONTH, day);
-            cal.set(Calendar.MONTH, month);
-            cal.set(Calendar.YEAR, year);
-            Date secondDate = cal.getTime();
+            cal.set(Calendar.DAY_OF_MONTH, end_day);
+            cal.set(Calendar.MONTH, end_month);
+            cal.set(Calendar.YEAR, end_year);
+            Date endDate = cal.getTime();
 
 
-            long diff = secondDate.getTime() - firstDate.getTime();
+            long diff = endDate.getTime() - startDate.getTime();
             int days = (int) (diff / (1000 * 60 * 60 * 24));
 
             if (diff < 1) {
@@ -396,13 +517,18 @@ public class CreateCampaignActivity extends AppCompatActivity implements DatePic
                 return;
             }
 
-            long amount = people * days;
-
+            int position = inputAdLinkOption.getSelectedItemPosition();
+            long amount = 0;
+            if (position == 0) {
+                amount = people * days * settings.getAmount_per_app_install();
+            } else if (position == 1) {
+                amount = people * days * settings.getAmount_per_click();
+            } else if (position == 2) {
+                amount = people * days * settings.getAmount_per_reach();
+            }
             double percent = (amount * 1.5) / 100;
-
             total_amount = (long) (amount + percent);
-
-            tvSummary.setText("You will spend ₦" + total_amount + ".00 . This ad will run for " + days + " day(s), ending on " + months[month] + " " + day + ", " + year + ".");
+            tvSummary.setText("You will spend ₦" + total_amount + ".00 . This ad will run for " + days + " day(s), ending on " + months[end_month] + " " + end_day + ", " + end_year + ".");
         }
 
     }
@@ -425,16 +551,25 @@ public class CreateCampaignActivity extends AppCompatActivity implements DatePic
         }
     }
 
-    private void loadInterests() {
+    private void loadInterestsAndLocations() {
         utils.displayDialog("Please wait...");
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         db.collection("settings").document("interests").get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                utils.dismissDialog();
                 if (task.isSuccessful()) {
                     interests.clear();
                     interests = (ArrayList<String>) task.getResult().get("data");
+                    db.collection("settings").document("locations").get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                        @Override
+                        public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                            utils.dismissDialog();
+                            if (task.isSuccessful()) {
+                                locations.clear();
+                                locations = (ArrayList<String>) task.getResult().get("data");
+                            }
+                        }
+                    });
                 }
             }
         });
@@ -481,12 +616,19 @@ public class CreateCampaignActivity extends AppCompatActivity implements DatePic
         try {
             if (requestCode == RESULT_LOAD_IMG) {
                 if (resultCode == RESULT_OK && data != null && data.getData() != null)
-                    CropImage.activity(data.getData())
-                            .setGuidelines(CropImageView.Guidelines.ON)
-                            .setAutoZoomEnabled(true)
-                            .setOutputCompressQuality(80)
-                            //.setOutputCompressFormat(Bitmap.CompressFormat.PNG)
-                            .start(this);
+                    if (data.getData().getLastPathSegment().contains("gif")) {
+                        ad_image = data.getData().getPath();
+                        Bitmap bitmap = BitmapFactory.decodeFile(ad_image);
+                        imgCamImage.setImageBitmap(bitmap);
+                        return;
+                    }
+
+                CropImage.activity(data.getData())
+                        .setGuidelines(CropImageView.Guidelines.ON)
+                        .setAutoZoomEnabled(true)
+                        .setOutputCompressQuality(80)
+                        //.setOutputCompressFormat(Bitmap.CompressFormat.PNG)
+                        .start(this);
             }
             if (requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE) {
                 try {
@@ -606,10 +748,33 @@ public class CreateCampaignActivity extends AppCompatActivity implements DatePic
 
     @Override
     public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
-        int people = (TextUtils.isEmpty(inputReached.getText().toString())) ? 0 : Integer.parseInt(inputReached.getText().toString());
-        summaryMaker(false, people, dayOfMonth, monthOfYear, year);
-        selected_date = dayOfMonth + "-" + monthOfYear + "-" + year;
-        String _selected_date = dayOfMonth + "-" + (monthOfYear + 1) + "-" + year;
-        btnExpire.setText(_selected_date);
+        if (isStart) {
+            int people = (TextUtils.isEmpty(inputReached.getText().toString())) ? 0 : Integer.parseInt(inputReached.getText().toString());
+            int ed = 0, em = 0, ey = 0;
+            if (!TextUtils.isEmpty(end_selected_date)) {
+                String[] date = end_selected_date.split("-");
+                ed = Integer.parseInt(date[0]);
+                em = Integer.parseInt(date[1]);
+                ey = Integer.parseInt(date[2]);
+            }
+            summaryMaker(false, people, dayOfMonth, monthOfYear, year, ed, em, ey);
+            selected_date = dayOfMonth + "-" + monthOfYear + "-" + year;
+            String _selected_date = dayOfMonth + "-" + (monthOfYear + 1) + "-" + year;
+            btnExpire.setText(_selected_date);
+        }
+        if (isEnd) {
+            int people = (TextUtils.isEmpty(inputReached.getText().toString())) ? 0 : Integer.parseInt(inputReached.getText().toString());
+            int sd = 0, sm = 0, sy = 0;
+            if (!TextUtils.isEmpty(selected_date)) {
+                String[] date = selected_date.split("-");
+                sd = Integer.parseInt(date[0]);
+                sm = Integer.parseInt(date[1]);
+                sy = Integer.parseInt(date[2]);
+            }
+            summaryMaker(false, people, sd, sm, sy, dayOfMonth, monthOfYear, year);
+            end_selected_date = dayOfMonth + "-" + monthOfYear + "-" + year;
+            String _selected_date = dayOfMonth + "-" + (monthOfYear + 1) + "-" + year;
+            btnExpire2.setText(_selected_date);
+        }
     }
 }

@@ -9,6 +9,13 @@ public class User {
 
     }
 
+    public User(String id, int age, String gender, String religion) {
+        this.id = id;
+        this.age = age;
+        this.gender = gender;
+        this.religion = religion;
+    }
+
     public User(String id, String name, String email, String number, int age, String gender, String religion, String tag, String bonus_data, String referralCode, String referralLink, String msgId, String deviceId, String created_date) {
         this.id = id;
         this.name = name;

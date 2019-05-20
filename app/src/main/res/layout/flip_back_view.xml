@@ -82,6 +82,39 @@
                     android:textSize="16sp" />
             </RelativeLayout>
 
+            <LinearLayout
+                android:id="@+id/tvAppTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="visible">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="5dp"
+                    android:paddingBottom="5dp"
+                    android:text="Enter the package id of your app"
+                    android:textColor="@color/colorPrimaryDark"
+                    android:textSize="16sp" />
+
+                <EditText
+                    android:id="@+id/cam_app_id"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/editbg"
+                    android:hint="e.g 'com.id.example'"
+                    android:inputType="text"
+                    android:maxLines="1"
+                    android:paddingLeft="10dp"
+                    android:paddingTop="10dp"
+                    android:paddingRight="10dp"
+                    android:paddingBottom="10dp"
+                    android:singleLine="true"
+                    android:textColor="@android:color/black"
+                    android:textSize="16sp" />
+            </LinearLayout>
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -120,12 +153,35 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="25dp"
                 android:paddingBottom="5dp"
-                android:text="Duration"
+                android:text="Campaign Start"
                 android:textColor="@color/colorPrimaryDark"
                 android:textSize="16sp" />
 
             <Button
                 android:id="@+id/cam_duration"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:background="@drawable/editbg"
+                android:drawableRight="@drawable/ic_arrow_drop_down_black_24dp"
+                android:gravity="start"
+                android:hint="Start this ad at"
+                android:maxLines="1"
+                android:padding="10dp"
+                android:singleLine="true"
+                android:textColor="@android:color/black"
+                android:textSize="16sp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="25dp"
+                android:paddingBottom="5dp"
+                android:text="Campaign End"
+                android:textColor="@color/colorPrimaryDark"
+                android:textSize="16sp" />
+
+            <Button
+                android:id="@+id/cam_duration_end"
                 android:layout_width="match_parent"
                 android:layout_height="40dp"
                 android:background="@drawable/editbg"

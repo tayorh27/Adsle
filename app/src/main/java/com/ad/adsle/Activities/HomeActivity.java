@@ -1,8 +1,11 @@
 package com.ad.adsle.Activities;
 
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.pm.ShortcutInfo;
+import android.content.pm.ShortcutManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -10,6 +13,7 @@ import android.os.Bundle;
 import com.ad.adsle.Db.AppData;
 import com.ad.adsle.Information.CampaignInformation;
 import com.ad.adsle.Information.Plans;
+import com.ad.adsle.Information.Settings;
 import com.ad.adsle.Information.User;
 import com.ad.adsle.R;
 import com.ad.adsle.Util.Utils;
@@ -23,6 +27,7 @@ import com.google.android.material.snackbar.Snackbar;
 
 import android.provider.ContactsContract;
 import android.text.InputType;
+import android.util.Log;
 import android.view.View;
 
 import androidx.annotation.NonNull;
@@ -64,6 +69,7 @@ public class HomeActivity extends AppCompatActivity
     AppData data;
     Utils utils;
     User user;
+    Settings settings;
 
     TextView name, email, nBonus;
     NavigationView navigationView;
@@ -78,7 +84,7 @@ public class HomeActivity extends AppCompatActivity
     boolean isCampaignExists = false;
     CampaignInformation current_campaign;
 
-    LinearLayout dataLayout, camLayout;
+    LinearLayout dataLayout, camLayout, rechargeLayout;
     AppCompatTextView camM1, camM2, camM3, viewCam, t1, t2, t3;
 
     String total_cam_count = "", total_active_cam_count = "", total_inactive_cam_count = "";
@@ -96,10 +102,12 @@ public class HomeActivity extends AppCompatActivity
         utils = new Utils(HomeActivity.this);
         data = new AppData(HomeActivity.this);
         user = data.getUser();
+        settings = data.getSettings();
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         dataLayout = findViewById(R.id.data_layout);
         camLayout = findViewById(R.id.cam_layout);
+        rechargeLayout = findViewById(R.id.recLayout);
         camM1 = findViewById(R.id.cam_menu1);
         camM2 = findViewById(R.id.cam_menu2);
         camM3 = findViewById(R.id.cam_menu3);
@@ -130,7 +138,7 @@ public class HomeActivity extends AppCompatActivity
             @Override
             public void onClick(View v) {
                 if (current_campaign != null) {
-                    Intent intent = new Intent();
+                    Intent intent = new Intent(HomeActivity.this, ViewCampaignActivity.class);
                     intent.putExtra("current_campaign", current_campaign);
                     startActivity(intent);
                 }
@@ -143,6 +151,8 @@ public class HomeActivity extends AppCompatActivity
     private void LoadNavHeaderDetails() {
         if (user.getTag().contentEquals("advertiser")) {
             dataLayout.setVisibility(View.GONE);
+            rechargeLayout.setVisibility(View.GONE);
+            camLayout.setVisibility(View.VISIBLE);
         }
         nBonus.setText(utils.getExactDataValue(user.getBonus_data()));
         name = navigationView.getHeaderView(0).findViewById(R.id.tvName);
@@ -214,7 +224,7 @@ public class HomeActivity extends AppCompatActivity
 
     private boolean dataCheck() {
         long current_data = Long.parseLong(user.getBonus_data());
-        long start_data = 524288000;
+        long start_data = settings.getWithdrawal_data_check();//524288000;
         return (current_data >= start_data);
     }
 
@@ -239,13 +249,40 @@ public class HomeActivity extends AppCompatActivity
     private void updateViews() {
         if (current_campaign != null && isCampaignExists) {
             camLayout.setVisibility(View.VISIBLE);
-            camM1.setText(current_campaign.getReach_number());
-            camM2.setText(current_campaign.getViews_number());
-            camM3.setText(current_campaign.getClicks_number());
+            camM1.setText(current_campaign.getReach_number() + "");
+            camM2.setText(current_campaign.getViews_number() + "");
+            camM3.setText(current_campaign.getClicks_number() + "");
 
             t1.setText(total_cam_count);
             t2.setText(total_active_cam_count);
             t3.setText(total_inactive_cam_count);
+        }
+    }
+
+    private void addWidgetToHomeScreen() {
+        ShortcutManager shortcutManager = getSystemService(ShortcutManager.class);
+
+        if (shortcutManager.isRequestPinShortcutSupported()) {
+            // Assumes there's already a shortcut with the ID "my-shortcut".
+            // The shortcut must be enabled.
+            ShortcutInfo pinShortcutInfo =
+                    new ShortcutInfo.Builder(HomeActivity.this, "my-shortcut").build();
+
+            // Create the PendingIntent object only if your app needs to be notified
+            // that the user allowed the shortcut to be pinned. Note that, if the
+            // pinning operation fails, your app isn't notified. We assume here that the
+            // app has implemented a method called createShortcutResultIntent() that
+            // returns a broadcast intent.
+            Intent pinnedShortcutCallbackIntent =
+                    shortcutManager.createShortcutResultIntent(pinShortcutInfo);
+
+            // Configure the intent so that your app's broadcast receiver gets
+            // the callback successfully.For details, see PendingIntent.getBroadcast().
+            PendingIntent successCallback = PendingIntent.getBroadcast(HomeActivity.this, /* request code */ 0,
+                    pinnedShortcutCallbackIntent, /* flags */ 0);
+
+            shortcutManager.requestPinShortcut(pinShortcutInfo,
+                    successCallback.getIntentSender());
         }
     }
 
@@ -264,9 +301,10 @@ public class HomeActivity extends AppCompatActivity
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-//        if (id == R.id.action_settings) {
-//            return true;
-//        }
+        if (id == R.id.action_create) {
+            startActivity(new Intent(HomeActivity.this, CreateCampaignActivity.class));
+            return true;
+        }
 
         return super.onOptionsItemSelected(item);
     }
@@ -411,15 +449,17 @@ public class HomeActivity extends AppCompatActivity
                         db.collection("campaigns").document(currentTitle).addSnapshotListener(new EventListener<DocumentSnapshot>() {
                             @Override
                             public void onEvent(@javax.annotation.Nullable DocumentSnapshot documentSnapshot, @javax.annotation.Nullable FirebaseFirestoreException e) {
-                                current_campaign = documentSnapshot.toObject(CampaignInformation.class);
-                                updateViews();
+                                if (documentSnapshot != null) {
+                                    current_campaign = documentSnapshot.toObject(CampaignInformation.class);
+                                    updateViews();
+                                }
                             }
                         });
 
-                        db.collection("campaigns").whereArrayContains("email", user.getEmail()).get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                        db.collection("campaigns").whereEqualTo("email", user.getEmail()).get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                             @Override
                             public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                                if (task.getResult().getDocuments().isEmpty()) {
+                                if (task.getResult().getDocuments().isEmpty() || task.getResult() == null) {
                                     total_cam_count = "0";
                                 } else {
                                     total_cam_count = "" + task.getResult().getDocuments().size();
@@ -428,10 +468,10 @@ public class HomeActivity extends AppCompatActivity
                             }
                         });
 
-                        db.collection("campaigns").whereArrayContains("email", user.getEmail()).whereEqualTo("status", true).get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                        db.collection("campaigns").whereEqualTo("email", user.getEmail()).whereEqualTo("status", true).get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                             @Override
                             public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                                if (task.getResult().getDocuments().isEmpty()) {
+                                if (task.getResult().getDocuments().isEmpty() || task.getResult() == null) {
                                     total_active_cam_count = "0";
                                 } else {
                                     total_active_cam_count = "" + task.getResult().getDocuments().size();
@@ -440,10 +480,10 @@ public class HomeActivity extends AppCompatActivity
                             }
                         });
 
-                        db.collection("campaigns").whereArrayContains("email", user.getEmail()).whereEqualTo("status", false).get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                        db.collection("campaigns").whereEqualTo("email", user.getEmail()).whereEqualTo("status", false).get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                             @Override
                             public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                                if (task.getResult().getDocuments().isEmpty()) {
+                                if (task.getResult().getDocuments().isEmpty() || task.getResult() == null) {
                                     total_inactive_cam_count = "0";
                                 } else {
                                     total_inactive_cam_count = "" + task.getResult().getDocuments().size();

@@ -77,10 +77,11 @@
         <item>Both</item>
     </string-array>
     <string-array name="cam_link_options">
-        <item>Action App Install</item>
-        <item>Action Call</item>
-        <item>Action Email</item>
-        <item>Action Link</item>
+        <item>App Install</item>
+        <!--<item>Action Call</item>-->
+        <!--<item>Action Email</item>-->
+        <item>Click</item>
+        <item>Reach</item>
     </string-array>
 
     <string name="appwidget_text">ADSLE</string>
@@ -100,4 +101,5 @@
     <string name="title_activity_create_campaign">Create New Campaign</string>
     <string name="title_activity_payment">Make Payment</string>
     <string name="title_activity_transaction">Campaign Transactions</string>
+    <string name="terms"><u>By registering, you have agreed to our Terms and Conditions</u></string>
 </resources>

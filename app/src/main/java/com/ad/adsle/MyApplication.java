@@ -3,10 +3,19 @@ package com.ad.adsle;
 import android.app.Application;
 import android.content.Context;
 
+import androidx.annotation.NonNull;
 import androidx.multidex.MultiDex;
 
+import com.ad.adsle.Db.AppData;
+import com.ad.adsle.Information.Settings;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.libraries.places.api.Places;
 import com.google.android.libraries.places.api.net.PlacesClient;
+import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import co.paystack.android.PaystackSdk;
 import uk.co.chrisjenx.calligraphy.CalligraphyConfig;
@@ -33,10 +42,11 @@ public class MyApplication extends Application {
         );
         //initialize sdk
         PaystackSdk.initialize(this);
-        Places.initialize(getApplicationContext(), getAppContext().getString(R.string.google_place_maps_key));
+        fetchSettings();
+        //Places.initialize(getApplicationContext(), getAppContext().getString(R.string.google_place_maps_key));
 
         // Create a new Places client instance.
-        PlacesClient placesClient = Places.createClient(this);
+        //PlacesClient placesClient = Places.createClient(this);
         //Slider.init(new PicassoImageLoadingService(getAppContext()));
     }
 
@@ -46,5 +56,31 @@ public class MyApplication extends Application {
 
     public static MyApplication getInstance() {
         return sInstance;
+    }
+
+    public static void fetchSettings() {
+        AppData data = new AppData(getAppContext());
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("settings").document("app-settings").get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                if (task.isSuccessful()) {
+                    Settings settings = task.getResult().toObject(Settings.class);
+                    data.StoreSettings(settings);
+                }
+            }
+        });
+        CollectionReference col = db.collection("users");
+        col.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                if (task.isSuccessful()) {
+                    long users_size = task.getResult().getDocuments().size();
+                    Settings settings = data.getSettings();
+                    settings.setTotal_users(users_size);
+                    data.StoreSettings(settings);
+                }
+            }
+        });
     }
 }

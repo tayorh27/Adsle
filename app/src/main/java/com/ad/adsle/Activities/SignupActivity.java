@@ -30,6 +30,7 @@ import com.ad.adsle.Information.User;
 import com.ad.adsle.R;
 import com.ad.adsle.Util.LocationGetterBackgroundTask;
 import com.ad.adsle.Util.Utils;
+import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.an.deviceinfo.device.model.Device;
 import com.an.deviceinfo.device.model.Network;
@@ -78,6 +79,7 @@ public class SignupActivity extends AppCompatActivity implements DatePickerDialo
     private ProgressBar progressBar;
 
     AppData data;
+    com.ad.adsle.Information.Settings settings;
 
     String email, password, name, number, referral, age, gender, religion, refLink;
     //CallbackManager mCallbackManager;
@@ -103,6 +105,7 @@ public class SignupActivity extends AppCompatActivity implements DatePickerDialo
 
         auth = FirebaseAuth.getInstance();
         data = new AppData(SignupActivity.this);
+        settings = data.getSettings();
         utils = new Utils(SignupActivity.this);
         btnSignIn = findViewById(R.id.sign_in_button);
         btnSignUp = findViewById(R.id.sign_up_button);
@@ -320,6 +323,19 @@ public class SignupActivity extends AppCompatActivity implements DatePickerDialo
         }
     }
 
+    public void Terms(View view) {
+        new MaterialDialog.Builder(SignupActivity.this)
+                .title("Terms & Conditions")
+                .content("")
+                .positiveText("Agreed")
+                .onPositive(new MaterialDialog.SingleButtonCallback() {
+                    @Override
+                    public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                        dialog.dismiss();
+                    }
+                }).show();
+    }
+
     private void preOperations() {
         String android_id = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
         FirebaseInstanceId.getInstance().getInstanceId().addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
@@ -328,7 +344,7 @@ public class SignupActivity extends AppCompatActivity implements DatePickerDialo
                 if (task.isSuccessful()) {
                     String token = task.getResult().getToken();
                     data.setRegistrationToken(token);
-                    User user = new User("", name, email, number, 0, gender, religion, tag, "20971520", refCode, "", data.getRegistrationToken(), android_id, new Date().toLocaleString());
+                    User user = new User("", name, email, number, 0, gender, religion, tag, String.valueOf(settings.getSignup_data()), refCode, "", data.getRegistrationToken(), android_id, new Date().toLocaleString());
                     if (tag.contentEquals("user")) {
                         Calendar calendar = Calendar.getInstance();
                         int year_now = calendar.get(Calendar.YEAR);
@@ -423,7 +439,7 @@ public class SignupActivity extends AppCompatActivity implements DatePickerDialo
 
     private boolean BuildDynamicLink(String ref, String email) {
         Task<ShortDynamicLink> shortLinkTask = FirebaseDynamicLinks.getInstance().createDynamicLink()
-                .setLink(Uri.parse("http://adsle.com?ref_code=" + ref + "&email=" + email + "&data=20971520"))
+                .setLink(Uri.parse("http://adsle.com?ref_code=" + ref + "&email=" + email + "&data=" + settings.getInvite_bonus_data()))
                 .setDomainUriPrefix("https://adsle.page.link")
                 .setAndroidParameters(new DynamicLink.AndroidParameters.Builder("com.ad.adsle")
                         .build())
@@ -473,10 +489,19 @@ public class SignupActivity extends AppCompatActivity implements DatePickerDialo
                     if (task.isSuccessful()) {
                         Map<String, Object> snapshot = task.getResult().getData();
                         long data = Long.parseLong(String.valueOf(snapshot != null ? snapshot.get("bonus_data") : "0"));
-                        data = data + mb;
-                        Map<String, Object> param = new HashMap<>();
-                        param.put("bonus_data", String.valueOf(data));
-                        docRef.update(param);
+                        int count = Integer.parseInt(String.valueOf(snapshot != null ? snapshot.get("invite_count") : "0"));
+                        int newCount = count + 1;
+                        if (newCount < 5) {
+                            Map<String, Object> param = new HashMap<>();
+                            param.put("invite_count", String.valueOf(newCount));
+                            docRef.update(param);
+                        } else if (newCount == 5) {
+                            data = data + mb;
+                            Map<String, Object> param = new HashMap<>();
+                            param.put("bonus_data", String.valueOf(data));
+                            param.put("invite_count", String.valueOf(0));
+                            docRef.update(param);
+                        }
                     }
                 }
             });

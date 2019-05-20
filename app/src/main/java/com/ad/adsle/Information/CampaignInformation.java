@@ -7,19 +7,22 @@ import java.util.ArrayList;
 
 public class CampaignInformation implements Parcelable {
 
-    String id, email, title, age_range_min, age_range_max, gender, religion;
-    LocationDetails locationDetails;
+    String id, email, title;
+    ArrayList<String> gender, religion;
+    int age_range_min, age_range_max;
+    ArrayList<String> locationDetails;
     ArrayList<String> interests;
-    String campaign_image, campaign_link_option, campaign_link, campaign_reach, campaign_duration, campaign_amount_paid;
+    String campaign_image, campaign_link_option, campaign_link, campaign_duration_start, campaign_duration_end, campaign_amount_paid, cam_application_id;
     boolean status;
 
-    String views_number, reach_number, clicks_number, app_installs_number, created_date;
+    long campaign_reach, views_number, reach_number, clicks_number, app_installs_number;
+    String created_date;
 
     public CampaignInformation() {
 
     }
 
-    public CampaignInformation(String id, String email, String title, String age_range_min, String age_range_max, String gender, String religion, LocationDetails locationDetails, ArrayList<String> interests, String campaign_image, String campaign_link_option, String campaign_link, String campaign_reach, String campaign_duration, String campaign_amount_paid, boolean status, String views_number, String reach_number, String clicks_number, String app_installs_number, String created_date) {
+    public CampaignInformation(String id, String email, String title, int age_range_min, int age_range_max, ArrayList<String> gender, ArrayList<String> religion, ArrayList<String> locationDetails, ArrayList<String> interests, String campaign_image, String campaign_link_option, String campaign_link, long campaign_reach, String campaign_duration_start, String campaign_duration_end, String campaign_amount_paid, String cam_application_id, boolean status, long views_number, long reach_number, long clicks_number, long app_installs_number, String created_date) {
         this.id = id;
         this.email = email;
         this.title = title;
@@ -33,8 +36,10 @@ public class CampaignInformation implements Parcelable {
         this.campaign_link_option = campaign_link_option;
         this.campaign_link = campaign_link;
         this.campaign_reach = campaign_reach;
-        this.campaign_duration = campaign_duration;
+        this.campaign_duration_start = campaign_duration_start;
+        this.campaign_duration_end = campaign_duration_end;
         this.campaign_amount_paid = campaign_amount_paid;
+        this.cam_application_id = cam_application_id;
         this.status = status;
         this.views_number = views_number;
         this.reach_number = reach_number;
@@ -47,22 +52,24 @@ public class CampaignInformation implements Parcelable {
         id = in.readString();
         email = in.readString();
         title = in.readString();
-        age_range_min = in.readString();
-        age_range_max = in.readString();
-        gender = in.readString();
-        religion = in.readString();
+        gender = in.createStringArrayList();
+        religion = in.createStringArrayList();
+        age_range_min = in.readInt();
+        age_range_max = in.readInt();
         interests = in.createStringArrayList();
         campaign_image = in.readString();
         campaign_link_option = in.readString();
         campaign_link = in.readString();
-        campaign_reach = in.readString();
-        campaign_duration = in.readString();
+        campaign_reach = in.readLong();
+        campaign_duration_start = in.readString();
+        campaign_duration_end = in.readString();
         campaign_amount_paid = in.readString();
+        cam_application_id = in.readString();
         status = in.readByte() != 0;
-        views_number = in.readString();
-        reach_number = in.readString();
-        clicks_number = in.readString();
-        app_installs_number = in.readString();
+        views_number = in.readLong();
+        reach_number = in.readLong();
+        clicks_number = in.readLong();
+        app_installs_number = in.readLong();
         created_date = in.readString();
     }
 
@@ -102,43 +109,43 @@ public class CampaignInformation implements Parcelable {
         this.title = title;
     }
 
-    public String getAge_range_min() {
+    public int getAge_range_min() {
         return age_range_min;
     }
 
-    public void setAge_range_min(String age_range_min) {
+    public void setAge_range_min(int age_range_min) {
         this.age_range_min = age_range_min;
     }
 
-    public String getAge_range_max() {
+    public int getAge_range_max() {
         return age_range_max;
     }
 
-    public void setAge_range_max(String age_range_max) {
+    public void setAge_range_max(int age_range_max) {
         this.age_range_max = age_range_max;
     }
 
-    public String getGender() {
+    public ArrayList<String> getGender() {
         return gender;
     }
 
-    public void setGender(String gender) {
+    public void setGender(ArrayList<String> gender) {
         this.gender = gender;
     }
 
-    public String getReligion() {
+    public ArrayList<String> getReligion() {
         return religion;
     }
 
-    public void setReligion(String religion) {
+    public void setReligion(ArrayList<String> religion) {
         this.religion = religion;
     }
 
-    public LocationDetails getLocationDetails() {
+    public ArrayList<String> getLocationDetails() {
         return locationDetails;
     }
 
-    public void setLocationDetails(LocationDetails locationDetails) {
+    public void setLocationDetails(ArrayList<String> locationDetails) {
         this.locationDetails = locationDetails;
     }
 
@@ -174,20 +181,28 @@ public class CampaignInformation implements Parcelable {
         this.campaign_link = campaign_link;
     }
 
-    public String getCampaign_reach() {
+    public long getCampaign_reach() {
         return campaign_reach;
     }
 
-    public void setCampaign_reach(String campaign_reach) {
+    public void setCampaign_reach(long campaign_reach) {
         this.campaign_reach = campaign_reach;
     }
 
-    public String getCampaign_duration() {
-        return campaign_duration;
+    public String getCampaign_duration_start() {
+        return campaign_duration_start;
     }
 
-    public void setCampaign_duration(String campaign_duration) {
-        this.campaign_duration = campaign_duration;
+    public void setCampaign_duration_start(String campaign_duration_start) {
+        this.campaign_duration_start = campaign_duration_start;
+    }
+
+    public String getCampaign_duration_end() {
+        return campaign_duration_end;
+    }
+
+    public void setCampaign_duration_end(String campaign_duration_end) {
+        this.campaign_duration_end = campaign_duration_end;
     }
 
     public String getCampaign_amount_paid() {
@@ -206,36 +221,44 @@ public class CampaignInformation implements Parcelable {
         this.status = status;
     }
 
-    public String getViews_number() {
+    public long getViews_number() {
         return views_number;
     }
 
-    public void setViews_number(String views_number) {
+    public void setViews_number(long views_number) {
         this.views_number = views_number;
     }
 
-    public String getReach_number() {
+    public long getReach_number() {
         return reach_number;
     }
 
-    public void setReach_number(String reach_number) {
+    public void setReach_number(long reach_number) {
         this.reach_number = reach_number;
     }
 
-    public String getClicks_number() {
+    public long getClicks_number() {
         return clicks_number;
     }
 
-    public void setClicks_number(String clicks_number) {
+    public void setClicks_number(long clicks_number) {
         this.clicks_number = clicks_number;
     }
 
-    public String getApp_installs_number() {
+    public long getApp_installs_number() {
         return app_installs_number;
     }
 
-    public void setApp_installs_number(String app_installs_number) {
+    public void setApp_installs_number(long app_installs_number) {
         this.app_installs_number = app_installs_number;
+    }
+
+    public String getCam_application_id() {
+        return cam_application_id;
+    }
+
+    public void setCam_application_id(String cam_application_id) {
+        this.cam_application_id = cam_application_id;
     }
 
     public String getCreated_date() {
@@ -256,22 +279,24 @@ public class CampaignInformation implements Parcelable {
         dest.writeString(id);
         dest.writeString(email);
         dest.writeString(title);
-        dest.writeString(age_range_min);
-        dest.writeString(age_range_max);
-        dest.writeString(gender);
-        dest.writeString(religion);
+        dest.writeStringList(gender);
+        dest.writeStringList(religion);
+        dest.writeInt(age_range_min);
+        dest.writeInt(age_range_max);
         dest.writeStringList(interests);
         dest.writeString(campaign_image);
         dest.writeString(campaign_link_option);
         dest.writeString(campaign_link);
-        dest.writeString(campaign_reach);
-        dest.writeString(campaign_duration);
+        dest.writeLong(campaign_reach);
+        dest.writeString(campaign_duration_start);
+        dest.writeString(campaign_duration_end);
         dest.writeString(campaign_amount_paid);
+        dest.writeString(cam_application_id);
         dest.writeByte((byte) (status ? 1 : 0));
-        dest.writeString(views_number);
-        dest.writeString(reach_number);
-        dest.writeString(clicks_number);
-        dest.writeString(app_installs_number);
+        dest.writeLong(views_number);
+        dest.writeLong(reach_number);
+        dest.writeLong(clicks_number);
+        dest.writeLong(app_installs_number);
         dest.writeString(created_date);
     }
 }

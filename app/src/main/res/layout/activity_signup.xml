@@ -247,9 +247,14 @@
 
             <androidx.appcompat.widget.AppCompatCheckedTextView
                 android:id="@+id/termsCheck"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="I accept Terms and Conditions" />
+                android:layout_gravity="center_horizontal"
+                android:text="@string/terms"
+                android:onClick="Terms"
+                android:textColor="@color/fabColor"
+                android:textSize="15sp"
+                android:textStyle="italic" />
 
             <Button
                 android:id="@+id/sign_up_button"

@@ -31,7 +31,9 @@ android {
         }
     }
     configurations.all {
-        all*.exclude group: 'com.mcxiaoke.volley', module: 'library'
+        //runtime.exclude group: 'com.mcxiaoke.volley'
+        //all*.exclude group: 'com.mcxiaoke.volley'
+        //all*.exclude group: 'com.mcxiaoke.volley', module: 'library'
 //        resolutionStrategy.eachDependency { DependencyResolveDetails details ->
 //            def requested = details.requested
 //            if (requested.group == 'com.android.support') {
@@ -44,7 +46,7 @@ android {
 }
 
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation fileTree(dir: 'libs', include: ['*.jar'], exclude: ['com.mcxiaoke.volley'])
     implementation 'androidx.appcompat:appcompat:1.1.0-alpha05'
     implementation 'androidx.constraintlayout:constraintlayout:2.0.0-beta1'
     implementation 'com.google.android.material:material:1.0.0'
@@ -85,5 +87,6 @@ dependencies {
     implementation 'id.zelory:compressor:2.0.0'
     implementation 'com.theartofdev.edmodo:android-image-cropper:2.7.0'
     implementation 'com.braintreepayments:card-form:3.1.0'
+    configurations.compile.exclude(group: 'com.mcxiaoke.volley', module: 'library')
 }
 apply plugin: 'com.google.gms.google-services'

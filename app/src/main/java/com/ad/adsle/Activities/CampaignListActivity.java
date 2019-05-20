@@ -84,16 +84,17 @@ public class CampaignListActivity extends AppCompatActivity implements ClickList
 
     private void LoadCampaigns() {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
-        Query collection = db.collection("campaigns").whereArrayContains("email", user.getEmail());
+        Query collection = db.collection("campaigns").whereEqualTo("email", user.getEmail());
         collection.addSnapshotListener(new EventListener<QuerySnapshot>() {
             @Override
             public void onEvent(@Nullable QuerySnapshot queryDocumentSnapshots, @Nullable FirebaseFirestoreException e) {
                 progressBar.setVisibility(View.GONE);
                 if (queryDocumentSnapshots != null) {
+                    campaignInformationArrayList.clear();
                     for (DocumentSnapshot snapshot : queryDocumentSnapshots.getDocuments()) {
                         campaignInformationArrayList.add(snapshot.toObject(CampaignInformation.class));
                     }
-                    if(campaignInformationArrayList.isEmpty()){
+                    if (campaignInformationArrayList.isEmpty()) {
                         layout.setVisibility(View.VISIBLE);
                     }
                     adapter.updateLayout(campaignInformationArrayList);
@@ -136,7 +137,7 @@ public class CampaignListActivity extends AppCompatActivity implements ClickList
     @Override
     public void onViewClick(View view, int position) {
         CampaignInformation current_campaign = campaignInformationArrayList.get(position);
-        Intent intent = new Intent();
+        Intent intent = new Intent(CampaignListActivity.this, ViewCampaignActivity.class);
         intent.putExtra("current_campaign", current_campaign);
         startActivity(intent);
     }

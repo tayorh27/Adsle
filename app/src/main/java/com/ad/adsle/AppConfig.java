@@ -32,4 +32,10 @@ public class AppConfig {
     public static final String GET_LOCATION_FROM_SERVER = "https://maps.googleapis.com/maps/api/geocode/json?latlng=";
 
     public static final String GOOGLE_API_KEY = "AIzaSyCc5mJtCQBVVM4MqnTVhEV0Y9EMdafErKY";
+
+    public static final String SMS_USERNAME = "adsleapp@gmail.com";
+
+    public static final String SMS_PASSWORD = "Olaoluwa@5323";
+
+    public static final String DATA_API_URL = "https://clients.primeairtime.com/api/";
 }

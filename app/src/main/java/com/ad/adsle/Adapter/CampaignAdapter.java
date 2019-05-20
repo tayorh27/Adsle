@@ -1,6 +1,7 @@
 package com.ad.adsle.Adapter;
 
 import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -54,22 +55,27 @@ public class CampaignAdapter extends RecyclerView.Adapter<CampaignAdapter.CamHol
     @Override
     public void onBindViewHolder(@NonNull CamHolder holder, int position) {
         CampaignInformation current = campaignInformationArrayList.get(position);
-        holder.cMenu1.setText(current.getReach_number());
-        holder.cMenu2.setText(current.getViews_number());
-        holder.cMenu3.setText(current.getClicks_number());
+        holder.cMenu1.setText(current.getReach_number() + "");
+        holder.cMenu2.setText(current.getViews_number() + "");
+        holder.cMenu3.setText(current.getClicks_number() + "");
 
         holder.cTitle.setText(current.getTitle());
         holder.cCreatedDate.setText(current.getCreated_date());
 
         Calendar calendar = Calendar.getInstance();
+        String[] start = current.getCampaign_duration_start().split("-");
+        calendar.set(Calendar.YEAR, Integer.parseInt(start[2]));
+        calendar.set(Calendar.MONTH, Integer.parseInt(start[1]));
+        calendar.set(Calendar.DAY_OF_MONTH, Integer.parseInt(start[0]));
         Date firstDate = calendar.getTime();
-        Date secondDate = null;
-        try {
-            secondDate = new SimpleDateFormat().parse(current.getCreated_date());
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
 
+        Calendar cal = Calendar.getInstance();
+        String[] exp = current.getCampaign_duration_end().split("-");
+        cal.set(Calendar.YEAR, Integer.parseInt(exp[2]));
+        cal.set(Calendar.MONTH, Integer.parseInt(exp[1]));
+        cal.set(Calendar.DAY_OF_MONTH, Integer.parseInt(exp[0]));
+
+        Date secondDate = cal.getTime();
 
         long diff = secondDate.getTime() - firstDate.getTime();
         int days = (int) (diff / (1000 * 60 * 60 * 24));

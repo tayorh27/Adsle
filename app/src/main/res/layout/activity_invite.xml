@@ -47,11 +47,12 @@
                 android:textSize="28sp" />
 
             <TextView
+                android:id="@+id/tvInviteText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
                 android:lineSpacingExtra="3dp"
-                android:text="Invite your friends and get FREE 20MB data when they signup using your referral link."
+                android:text="Invite 5 of your friends and get FREE 20MB data when they signup using your referral link."
                 android:textAlignment="center"
                 android:textColor="#fff"
                 android:textSize="18sp" />
