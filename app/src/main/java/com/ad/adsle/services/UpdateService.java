@@ -7,8 +7,11 @@ import android.content.ComponentName;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.IBinder;
+import android.util.Log;
 import android.widget.RemoteViews;
 
 import androidx.annotation.NonNull;
@@ -36,6 +39,10 @@ import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -79,31 +86,42 @@ public class UpdateService extends Service {
         locationDetails = data.getLocationDetails();
 
         FirebaseFirestore db = FirebaseFirestore.getInstance();
+        //Log.e("user", locationDetails.getCity() + "====" + user.getAge());
         Query query = db.collection("campaigns")
                 .whereEqualTo("status", true)
                 .whereGreaterThanOrEqualTo("age_range_min", user.getAge())
-                .whereLessThanOrEqualTo("age_range_max", user.getAge())
+                //.whereLessThanOrEqualTo("age_range_max", user.getAge())
                 //.whereLessThan("reach_number", 2223)
-                .whereArrayContains("gender", user.getGender())
-                .whereArrayContains("religion", user.getReligion())
-                .whereArrayContains("locationDetails", locationDetails.getCity());//location
+                .whereArrayContains("locationDetails", locationDetails.getCity());
+//                .whereArrayContains("gender", user.getGender());
+//        query.whereArrayContains("religion", user.getReligion());
+//        query.whereArrayContains("locationDetails", locationDetails.getCity());//location
         query.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
             @Override
             public void onComplete(@NonNull Task<QuerySnapshot> task) {
                 if (task.isSuccessful()) {
                     campaignInformationArrayList.clear();
-                    int size = task.getResult().getDocuments().size();
-                    campaignData.setCampaignSize(size);
+                    int size = 0;
                     for (DocumentSnapshot snapshot : task.getResult().getDocuments()) {
-                        campaignInformationArrayList.add(snapshot.toObject(CampaignInformation.class));
+                        CampaignInformation ci = snapshot.toObject(CampaignInformation.class);
+                        //Log.e("UpdateService", "ci ===== " + ci.getCreated_date());
+                        campaignInformationArrayList.add(ci);
+                        size = size + 1;
                     }
+                    //Log.e("UpdateService", "number of campaignData = " + size);
+                    campaignData.setCampaignSize(size);
                     if (campaignInformationArrayList.size() > 0) {
                         DisplayAndSaveData(campaignData.getNext());
+                        //Log.e("GetAllCampaignForUser", "updateWidgetRemoteView: yes is working");
+                    } else {
+                        //Log.e("UpdateService", "size ===== 0");
                     }
+                } else {
+                    //Log.e("UpdateService", "number of campaignData = " + task.getException());
                 }
             }
         });
-    }
+    }//if store data exists. app install and views. clicks not working
 
     private void DisplayAndSaveData(int next) {
         campaignInformation = campaignInformationArrayList.get(next);
@@ -254,13 +272,39 @@ public class UpdateService extends Service {
         if (days < 1) {
             updateCampaignStatus(false, campaignInformation.getId(), "status");
         }
-        CheckForAppInstallsStatus();
+        //CheckForAppInstallsStatus();
     }
+
+    private Bitmap getBitmapFromURL(String src) {
+        try {
+            URL url = new URL(src);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setDoInput(true);
+            connection.connect();
+            InputStream input = connection.getInputStream();
+            Bitmap myBitmap = BitmapFactory.decodeStream(input);
+            return myBitmap;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    Bitmap bitmap = null;
 
     private void updateWidgetRemoteView() {
         settings = data.getSettings();
         RemoteViews view = new RemoteViews(getPackageName(), R.layout.adsle_widget);
-        view.setImageViewUri(R.id.appwidget_image, Uri.parse(campaignInformation.getCampaign_image()));
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                bitmap = getBitmapFromURL(campaignInformation.getCampaign_image());
+            }
+        }).start();
+        view.setImageViewBitmap(R.id.appwidget_image, bitmap);
+
+        //Log.e(",", campaignInformation.getCampaign_image());
+        //Log.e("updateWidgetRemoteView", "updateWidgetRemoteView: is here");
 
         String link_option = campaignInformation.getCampaign_link_option();
         if (link_option.contentEquals("App Install")) {

@@ -3,7 +3,7 @@
     android:initialKeyguardLayout="@layout/adsle_widget"
     android:initialLayout="@layout/adsle_widget"
     android:minWidth="250dp"
-    android:minHeight="60dp"
+    android:minHeight="100dp"
     android:previewImage="@drawable/example_appwidget_preview"
     android:updatePeriodMillis="0"
     android:widgetCategory="home_screen|keyguard"></appwidget-provider>

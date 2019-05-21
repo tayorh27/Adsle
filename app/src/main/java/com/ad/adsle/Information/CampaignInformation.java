@@ -56,6 +56,7 @@ public class CampaignInformation implements Parcelable {
         religion = in.createStringArrayList();
         age_range_min = in.readInt();
         age_range_max = in.readInt();
+        locationDetails = in.createStringArrayList();
         interests = in.createStringArrayList();
         campaign_image = in.readString();
         campaign_link_option = in.readString();
@@ -283,6 +284,7 @@ public class CampaignInformation implements Parcelable {
         dest.writeStringList(religion);
         dest.writeInt(age_range_min);
         dest.writeInt(age_range_max);
+        dest.writeStringList(locationDetails);
         dest.writeStringList(interests);
         dest.writeString(campaign_image);
         dest.writeString(campaign_link_option);

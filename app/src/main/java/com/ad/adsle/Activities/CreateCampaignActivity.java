@@ -236,7 +236,7 @@ public class CreateCampaignActivity extends AppCompatActivity implements DatePic
                         .context(CreateCampaignActivity.this)
                         .callback(CreateCampaignActivity.this)
                         .showTitle(true)
-                        .showDaySpinner(false)
+                        .showDaySpinner(true)
                         .defaultDate(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH))
                         .minDate(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH))
                         .build()
@@ -254,7 +254,7 @@ public class CreateCampaignActivity extends AppCompatActivity implements DatePic
                         .context(CreateCampaignActivity.this)
                         .callback(CreateCampaignActivity.this)
                         .showTitle(true)
-                        .showDaySpinner(false)
+                        .showDaySpinner(true)
                         .defaultDate(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH))
                         .minDate(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH))
                         .build()
@@ -272,18 +272,21 @@ public class CreateCampaignActivity extends AppCompatActivity implements DatePic
                         inputCamLink.setInputType(InputType.TYPE_TEXT_VARIATION_URI);
                         tvAT.setVisibility(View.VISIBLE);
                         inputCamLink.setVisibility(View.VISIBLE);
+                        //inputAdLinkOption.setBackgroundResource(0);
                         break;
                     case 1:
                         inputCamLink.setHint("Enter url link");
                         inputCamLink.setInputType(InputType.TYPE_TEXT_VARIATION_URI);
                         tvAT.setVisibility(View.GONE);
                         inputCamLink.setVisibility(View.VISIBLE);
+                        //inputAdLinkOption.setBackgroundResource(0);
                         break;
                     case 2:
                         inputCamLink.setHint("Enter email address");
                         inputCamLink.setInputType(InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
                         tvAT.setVisibility(View.GONE);
                         inputCamLink.setVisibility(View.GONE);
+                        //inputAdLinkOption.setBackgroundResource(R.drawable.editbg);
                         break;
                 }
                 if (!TextUtils.isEmpty(selected_date) && !TextUtils.isEmpty(end_selected_date)) {
@@ -311,14 +314,14 @@ public class CreateCampaignActivity extends AppCompatActivity implements DatePic
                 String[] date = selected_date.split("-");
                 String[] end_date = end_selected_date.split("-");
                 if (!TextUtils.isEmpty(reached)) {
+                    people = Long.parseLong(reached);
+                    long total_users = settings.getTotal_users();
+                    if (people > total_users) {
+                        inputReached.setText("");
+                        Toast.makeText(CreateCampaignActivity.this, "Maximum number of reach cannot exceed " + total_users, Toast.LENGTH_LONG).show();
+                        return;
+                    }
                     if (!TextUtils.isEmpty(selected_date) && !TextUtils.isEmpty(end_selected_date)) {
-                        people = Long.parseLong(reached);
-                        long total_users = settings.getTotal_users();
-                        if (people > total_users) {
-                            inputReached.setText("");
-                            Toast.makeText(CreateCampaignActivity.this, "Maximum number of reach cannot exceed " + total_users, Toast.LENGTH_LONG).show();
-                            return;
-                        }
                         summaryMaker(false, people, Integer.parseInt(date[0]), Integer.parseInt(date[1]), Integer.parseInt(date[2]), Integer.parseInt(end_date[0]), Integer.parseInt(end_date[1]), Integer.parseInt(end_date[2]));
                     }
                 } else {
@@ -471,7 +474,7 @@ public class CreateCampaignActivity extends AppCompatActivity implements DatePic
 
         DatabaseReference refId = FirebaseDatabase.getInstance().getReference();
         String id = refId.push().getKey();
-        campaignInformation = new CampaignInformation(id, user.getEmail(), cam_title, _minValue, _maxValue, create_gender, create_religion, selected_locations, selected_interests, "", cam_link_options, cam_link_text, Long.parseLong(cam_reached), selected_date, end_selected_date, String.valueOf(total_amount),
+        campaignInformation = new CampaignInformation(id, user.getEmail(), cam_title, _minValue, _maxValue, create_gender, create_religion, selected_locations, selected_interests, "", cam_link_options, cam_link_text, Long.parseLong(cam_reached), selected_date, end_selected_date, "₦" + String.valueOf(total_amount),
                 cam_application_id, false, 0, 0, 0,
                 0, new Date().toLocaleString());
         if (isPaymentMade) {
@@ -512,7 +515,13 @@ public class CreateCampaignActivity extends AppCompatActivity implements DatePic
             long diff = endDate.getTime() - startDate.getTime();
             int days = (int) (diff / (1000 * 60 * 60 * 24));
 
+            if (end_day == 0 || end_month == 0 || end_year == 0) {
+                return;
+            }
+
             if (diff < 1) {
+                end_selected_date = "";
+                btnExpire2.setText("");
                 utils.error("Please select a future date.");
                 return;
             }

@@ -2,6 +2,7 @@ package com.ad.adsle;
 
 import android.app.Application;
 import android.content.Context;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.multidex.MultiDex;
@@ -67,20 +68,22 @@ public class MyApplication extends Application {
                 if (task.isSuccessful()) {
                     Settings settings = task.getResult().toObject(Settings.class);
                     data.StoreSettings(settings);
+                    //Log.e("MyApplication", "settings test = " + settings.getSignup_data());
                 }
             }
         });
-        CollectionReference col = db.collection("users");
-        col.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                if (task.isSuccessful()) {
-                    long users_size = task.getResult().getDocuments().size();
-                    Settings settings = data.getSettings();
-                    settings.setTotal_users(users_size);
-                    data.StoreSettings(settings);
-                }
-            }
-        });
+//        FirebaseFirestore db2 = FirebaseFirestore.getInstance();
+//        db2.collection("users").get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+//            @Override
+//            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+//                if (task.isSuccessful()) {
+//                    int users_size = task.getResult().size();
+//                    Settings settings = data.getSettings();
+//                    settings.setTotal_users(2);
+//                    data.StoreSettings(settings);
+//                    Log.e("MyApplication", "number of users = " + users_size);
+//                }
+//            }
+//        });
     }
 }
