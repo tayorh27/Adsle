@@ -2,7 +2,8 @@ package com.ad.adsle.Information;
 
 public class User {
 
-    String id, name, email, number, gender, religion, tag, bonus_data, referralCode, referralLink, msgId, deviceId, created_date;
+    String id, name, email, number, gender, religion, tag, referralCode, referralLink, msgId, deviceId, created_date;
+    long bonus_data;
     int age;
 
     public User() {
@@ -16,7 +17,7 @@ public class User {
         this.religion = religion;
     }
 
-    public User(String id, String name, String email, String number, int age, String gender, String religion, String tag, String bonus_data, String referralCode, String referralLink, String msgId, String deviceId, String created_date) {
+    public User(String id, String name, String email, String number, int age, String gender, String religion, String tag, long bonus_data, String referralCode, String referralLink, String msgId, String deviceId, String created_date) {
         this.id = id;
         this.name = name;
         this.email = email;
@@ -53,7 +54,7 @@ public class User {
         return tag;
     }
 
-    public String getBonus_data() {
+    public long getBonus_data() {
         return bonus_data;
     }
 
@@ -117,7 +118,7 @@ public class User {
         this.gender = gender;
     }
 
-    public void setBonus_data(String bonus_data) {
+    public void setBonus_data(long bonus_data) {
         this.bonus_data = bonus_data;
     }
 

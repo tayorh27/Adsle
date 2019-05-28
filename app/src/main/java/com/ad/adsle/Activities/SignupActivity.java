@@ -53,6 +53,8 @@ import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.Transaction;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.iid.InstanceIdResult;
 import com.tsongkha.spinnerdatepicker.DatePicker;
@@ -344,7 +346,7 @@ public class SignupActivity extends AppCompatActivity implements DatePickerDialo
                 if (task.isSuccessful()) {
                     String token = task.getResult().getToken();
                     data.setRegistrationToken(token);
-                    User user = new User("", name, email, number, 0, gender, religion, tag, String.valueOf(settings.getSignup_data()), refCode, "", data.getRegistrationToken(), android_id, new Date().toLocaleString());
+                    User user = new User("", name, email, number, 0, gender, religion, tag, settings.getSignup_data(), refCode, "", data.getRegistrationToken(), android_id, new Date().toLocaleString());
                     if (tag.contentEquals("user")) {
                         Calendar calendar = Calendar.getInstance();
                         int year_now = calendar.get(Calendar.YEAR);
@@ -514,16 +516,16 @@ public class SignupActivity extends AppCompatActivity implements DatePickerDialo
             GiveUserData();
         }
         LocationDetails locationDetails = data.getLocationDetails();
-        if (locationDetails.getFormatted_address().contains("N/A")) {
-            LocationInfo locationInfo = new LocationInfo(SignupActivity.this);
-            DeviceLocation location = locationInfo.getLocation();
-            locationDetails.setCity(location.getState());
-            locationDetails.setArea(location.getCity());
-            locationDetails.setInside_area(location.getAddressLine1());
-            locationDetails.setFormatted_address(location.getAddressLine1());
-            locationDetails.setCountry(location.getCountryCode());
-            data.StoreLocationDetails(locationDetails);
-        }
+        //if (locationDetails.getFormatted_address().contains("N/A")) {
+        LocationInfo locationInfo = new LocationInfo(SignupActivity.this);
+        DeviceLocation location = locationInfo.getLocation();
+        locationDetails.setCity(location.getState());
+        locationDetails.setArea(location.getCity());
+        locationDetails.setInside_area(location.getAddressLine1());
+        locationDetails.setFormatted_address(location.getAddressLine1());
+        locationDetails.setCountry(location.getCountryCode());
+        data.StoreLocationDetails(locationDetails);
+        //}
         DatabaseReference refId = FirebaseDatabase.getInstance().getReference();
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         CollectionReference userRef = db.collection("users").document(email).collection("user-data");
@@ -549,10 +551,7 @@ public class SignupActivity extends AppCompatActivity implements DatePickerDialo
                                                 @Override
                                                 public void onComplete(@NonNull Task<Void> task) {
                                                     if (task.isSuccessful()) {
-                                                        data.setLogged(true);
-                                                        data.StoreUsers(user);
-                                                        startActivity(new Intent(SignupActivity.this, InterestActivity.class));
-                                                        finish();
+                                                        runTransactionForTotalUsers(user);
                                                     } else {
                                                         errorOccurred("");
                                                     }
@@ -573,6 +572,40 @@ public class SignupActivity extends AppCompatActivity implements DatePickerDialo
                 }
             }
         });
+    }
+
+    private void runTransactionForTotalUsers(User user) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        final DocumentReference sfDocRef = db.collection("settings").document("app-settings");
+
+        db.runTransaction(new Transaction.Function<Void>() {
+            @Override
+            public Void apply(@NonNull Transaction transaction) throws FirebaseFirestoreException {
+                DocumentSnapshot snapshot = transaction.get(sfDocRef);
+
+                // Note: this could be done without a transaction
+                //       by updating the population using FieldValue.increment()
+                long newTotalUsers = snapshot.getLong("total_users") + 1;
+                transaction.update(sfDocRef, "total_users", newTotalUsers);
+
+                // Success
+                return null;
+            }
+        }).addOnSuccessListener(new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void aVoid) {
+                data.setLogged(true);
+                data.StoreUsers(user);
+                startActivity(new Intent(SignupActivity.this, InterestActivity.class));
+                finish();
+            }
+        })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        //Log.w(TAG, "Transaction failure.", e);
+                    }
+                });
     }
 
     private void errorOccurred(String error) {

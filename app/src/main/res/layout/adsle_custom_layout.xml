@@ -1,21 +1,23 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="120dp"
     android:background="@color/colorPrimaryDark"
     android:orientation="vertical"
     android:padding="@dimen/widget_margin"
     android:weightSum="100">
 
     <ImageView
-        android:id="@+id/appwidget_image"
+        android:id="@+id/ad_image"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_weight="90"
         android:scaleType="centerCrop"
         android:src="@drawable/ad_image_view" />
+    <!--//pl.droidsonroids.gif.GifImageView-->
 
     <TextView
-        android:id="@+id/appwidget_text"
+        android:id="@+id/ad_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="right"

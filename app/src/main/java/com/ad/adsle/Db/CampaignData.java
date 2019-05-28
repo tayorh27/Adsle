@@ -62,4 +62,20 @@ public class CampaignData {
     public boolean getClicked(String key) {
         return prefs.getBoolean(key, false);
     }
+
+    public void setExpired(boolean expired, String key) {
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putBoolean(key, expired);
+        editor.apply();
+    }
+
+    public boolean getExpired(String key) {
+        return prefs.getBoolean(key, false);
+    }
+
+    public void Clear() {
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.clear();
+        editor.apply();
+    }
 }

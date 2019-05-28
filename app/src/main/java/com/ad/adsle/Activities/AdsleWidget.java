@@ -6,9 +6,11 @@ import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
 import android.os.SystemClock;
 import android.util.Log;
 import android.widget.RemoteViews;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
@@ -63,7 +65,7 @@ public class AdsleWidget extends AppWidgetProvider {
         if (service == null) {
             service = PendingIntent.getService(context, 0, i, PendingIntent.FLAG_CANCEL_CURRENT);
         }
-        manager.setRepeating(AlarmManager.ELAPSED_REALTIME, SystemClock.elapsedRealtime(), 60000, service);
+        manager.setRepeating(AlarmManager.ELAPSED_REALTIME, SystemClock.elapsedRealtime(), 3600000, service);
 //        for (int appWidgetId : appWidgetIds) {
 //            updateAppWidget(context, appWidgetManager, appWidgetId);
 //        }
@@ -73,16 +75,19 @@ public class AdsleWidget extends AppWidgetProvider {
     @Override
     public void onReceive(Context context, Intent intent) {
         super.onReceive(context, intent);
-        String cat = intent.getStringExtra("category");
-        if (cat != null) {
-            if (cat.contentEquals("Click")) {
-                String id = intent.getStringExtra("cam_id");
-                CampaignData data = new CampaignData(MyApplication.getAppContext());
-                data.setClicked(true, id);
-                updateCampaignData(true, id, "clicks_number", 1);
-            }
-        }
-
+//        Log.e("onReceive", "onReceive: is called 5");
+//        Log.e("onReceive", "onReceive: " + intent.toString());
+//        Log.e("onReceive", "onReceive");
+//        Log.e("onReceive", intent.getAction());
+//        Toast.makeText(context, "Button Clicked.....!!!", Toast.LENGTH_SHORT).show();
+//        Bundle bundle = intent.getExtras();
+//
+//        if (bundle != null && bundle.getString("category") != null) {
+//            String id = intent.getStringExtra("cam_id");
+//            CampaignData data = new CampaignData(MyApplication.getAppContext());
+//            data.setClicked(true, id);
+//            updateCampaignData(true, id, "clicks_number", 1);
+//        }
     }
 
     @Override
@@ -137,7 +142,7 @@ public class AdsleWidget extends AppWidgetProvider {
                     long newValue = bonus_data + dataBonus;
                     Map<String, Object> params = new HashMap<>();
                     params.put("bonus_data", newValue);
-                    user.setBonus_data(String.valueOf(newValue));
+                    user.setBonus_data(newValue);
                     data.StoreUsers(user);
                     updateUserRef.update(params);
                 }

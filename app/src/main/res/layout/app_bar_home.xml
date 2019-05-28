@@ -6,22 +6,39 @@
     android:layout_height="match_parent"
     tools:context=".Activities.HomeActivity">
 
-    <com.google.android.material.appbar.AppBarLayout
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:theme="@style/AppTheme.AppBarOverlay">
+        android:layout_height="match_parent">
 
-        <androidx.appcompat.widget.Toolbar
-            android:id="@+id/toolbar"
+        <com.google.android.material.appbar.AppBarLayout
+            android:id="@+id/r1"
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary"
-            app:popupTheme="@style/AppTheme.PopupOverlay" />
+            android:layout_height="wrap_content"
+            android:theme="@style/AppTheme.AppBarOverlay">
 
-    </com.google.android.material.appbar.AppBarLayout>
+            <androidx.appcompat.widget.Toolbar
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                android:background="?attr/colorPrimary"
+                app:popupTheme="@style/AppTheme.PopupOverlay" />
 
-    <include layout="@layout/content_home" />
+        </com.google.android.material.appbar.AppBarLayout>
 
+        <include
+            android:id="@+id/r2"
+            layout="@layout/content_home"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/r1" />
+
+        <include
+            android:id="@+id/r3"
+            layout="@layout/bottom_ad"
+            android:layout_width="match_parent"
+            android:layout_height="100dp"
+            android:layout_alignParentBottom="true" />
+    </RelativeLayout>
     <!--<com.google.android.material.floatingactionbutton.FloatingActionButton-->
     <!--android:id="@+id/fab"-->
     <!--android:layout_width="wrap_content"-->
@@ -38,8 +55,8 @@
         android:layout_marginRight="10dp"
         android:layout_marginBottom="8dp"
         android:background="@color/fabColor"
-        app:rippleColor="@color/fabColor"
         android:src="@drawable/ic_add_black_24dp"
-        android:visibility="visible" />
+        android:visibility="gone"
+        app:rippleColor="@color/fabColor" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -1,0 +1,16 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="120dp"
+    android:background="@drawable/ad_image_view"
+    android:orientation="vertical"
+    tools:context=".Activities.HomeActivity">
+
+    <AdapterViewFlipper
+        android:id="@+id/adapter_view_flipper"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:autoStart="true"
+        android:loopViews="true" />
+
+</LinearLayout>

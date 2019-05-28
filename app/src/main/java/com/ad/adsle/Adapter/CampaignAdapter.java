@@ -2,6 +2,7 @@ package com.ad.adsle.Adapter;
 
 import android.content.Context;
 import android.content.Intent;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -62,25 +63,37 @@ public class CampaignAdapter extends RecyclerView.Adapter<CampaignAdapter.CamHol
         holder.cTitle.setText(current.getTitle());
         holder.cCreatedDate.setText(current.getCreated_date());
 
-        Calendar calendar = Calendar.getInstance();
+        Calendar cal_current = Calendar.getInstance();
+        Date currentDate = cal_current.getTime();
+
+        Calendar cal_start = Calendar.getInstance();
         String[] start = current.getCampaign_duration_start().split("-");
-        calendar.set(Calendar.YEAR, Integer.parseInt(start[2]));
-        calendar.set(Calendar.MONTH, Integer.parseInt(start[1]));
-        calendar.set(Calendar.DAY_OF_MONTH, Integer.parseInt(start[0]));
-        Date firstDate = calendar.getTime();
+        cal_start.set(Calendar.YEAR, Integer.parseInt(start[2]));
+        cal_start.set(Calendar.MONTH, Integer.parseInt(start[1]));
+        cal_start.set(Calendar.DAY_OF_MONTH, Integer.parseInt(start[0]));
+        Date startDate = cal_start.getTime();
 
-        Calendar cal = Calendar.getInstance();
+        long mDiff = currentDate.getTime() - startDate.getTime();
+        int mDays = (int) (mDiff / (1000 * 60 * 60 * 24));
+
+        if (mDays < 0) {
+            holder.cDaysLeft.setText("Pending");
+            return;
+        }
+
+        Calendar cal_end = Calendar.getInstance();
         String[] exp = current.getCampaign_duration_end().split("-");
-        cal.set(Calendar.YEAR, Integer.parseInt(exp[2]));
-        cal.set(Calendar.MONTH, Integer.parseInt(exp[1]));
-        cal.set(Calendar.DAY_OF_MONTH, Integer.parseInt(exp[0]));
+        cal_end.set(Calendar.YEAR, Integer.parseInt(exp[2]));
+        cal_end.set(Calendar.MONTH, Integer.parseInt(exp[1]));
+        cal_end.set(Calendar.DAY_OF_MONTH, Integer.parseInt(exp[0]));
 
-        Date secondDate = cal.getTime();
+        Date endDate = cal_end.getTime();
 
-        long diff = secondDate.getTime() - firstDate.getTime();
-        int days = (int) (diff / (1000 * 60 * 60 * 24));
+        long diff = currentDate.getTime() - endDate.getTime();
+        int days = (int) Math.abs((diff / (1000 * 60 * 60 * 24)));
+        //Log.e("adapter", "onBindViewHolder: " + days);
 
-        if (days < 1) {
+        if (days > 0) {
             holder.cDaysLeft.setText("Expired");
         } else {
             holder.cDaysLeft.setText(days + " day(s) left");

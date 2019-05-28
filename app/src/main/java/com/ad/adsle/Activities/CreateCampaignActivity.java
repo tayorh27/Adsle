@@ -9,11 +9,14 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.ParcelFileDescriptor;
+import android.provider.MediaStore;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.TextUtils;
@@ -40,6 +43,7 @@ import com.ad.adsle.Information.LocationDetails;
 import com.ad.adsle.Information.Settings;
 import com.ad.adsle.Information.Transactions;
 import com.ad.adsle.Information.User;
+import com.ad.adsle.MyApplication;
 import com.ad.adsle.R;
 import com.ad.adsle.Util.Utils;
 import com.afollestad.materialdialogs.DialogAction;
@@ -75,6 +79,8 @@ import org.joda.time.DateTime;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileDescriptor;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -393,8 +399,8 @@ public class CreateCampaignActivity extends AppCompatActivity implements DatePic
             }
         });
         summaryMaker(true, 0, 0, 0, 0, 0, 0, 0);
+        MyApplication.fetchSettings();
         loadInterestsAndLocations();
-
     }
 
     public void PayAndCreateAd(View view) {
@@ -428,6 +434,10 @@ public class CreateCampaignActivity extends AppCompatActivity implements DatePic
                 Toast.makeText(getApplicationContext(), "Enter ad link!", Toast.LENGTH_SHORT).show();
                 return;
             }
+            if (!cam_link_text.startsWith("http")) {
+                Toast.makeText(getApplicationContext(), "Please link must start with http!", Toast.LENGTH_LONG).show();
+                return;
+            }
         }
 
         if (inputAdLinkOption.getSelectedItemPosition() == 0) {
@@ -445,6 +455,13 @@ public class CreateCampaignActivity extends AppCompatActivity implements DatePic
         if (TextUtils.isEmpty(ad_image)) {
             Toast.makeText(getApplicationContext(), "Set an image for your campaign", Toast.LENGTH_SHORT).show();
             return;
+        } else {
+            File imageFile = new File(ad_image);
+            long size = imageFile.length();
+            if (size > 204800) {
+                Toast.makeText(getApplicationContext(), "Image size must not be greater than 200KB", Toast.LENGTH_LONG).show();
+                return;
+            }
         }
 
         if (TextUtils.isEmpty(selected_date)) {
@@ -624,20 +641,23 @@ public class CreateCampaignActivity extends AppCompatActivity implements DatePic
         super.onActivityResult(requestCode, resultCode, data);
         try {
             if (requestCode == RESULT_LOAD_IMG) {
-                if (resultCode == RESULT_OK && data != null && data.getData() != null)
-                    if (data.getData().getLastPathSegment().contains("gif")) {
-                        ad_image = data.getData().getPath();
+                if (resultCode == RESULT_OK && data != null && data.getData() != null) {
+                    String ext = getFileExtension(data.getData());
+                    if (ext.contains("gif")) {
+                        ad_image = getImagePath(data.getData());
+                        Log.e("kjsf", "onActivityResult: " + ad_image);
                         Bitmap bitmap = BitmapFactory.decodeFile(ad_image);
+                        //Bitmap bitmap = getBitmapFromUri(data.getData());
                         imgCamImage.setImageBitmap(bitmap);
                         return;
                     }
-
-                CropImage.activity(data.getData())
-                        .setGuidelines(CropImageView.Guidelines.ON)
-                        .setAutoZoomEnabled(true)
-                        .setOutputCompressQuality(80)
-                        //.setOutputCompressFormat(Bitmap.CompressFormat.PNG)
-                        .start(this);
+                    CropImage.activity(data.getData())
+                            .setGuidelines(CropImageView.Guidelines.ON)
+                            .setAutoZoomEnabled(true)
+                            .setOutputCompressQuality(70)
+                            .setOutputCompressFormat(Bitmap.CompressFormat.PNG)
+                            .start(this);
+                }
             }
             if (requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE) {
                 try {
@@ -645,6 +665,7 @@ public class CreateCampaignActivity extends AppCompatActivity implements DatePic
                     if (resultCode == RESULT_OK) {
                         Uri resultUri = result.getUri();
                         ad_image = resultUri.getPath();
+                        Log.e("cc", "CropImage: " + ad_image);
                         Bitmap bitmap = BitmapFactory.decodeFile(ad_image);
                         imgCamImage.setImageBitmap(bitmap);
                     } else if (resultCode == CropImage.CROP_IMAGE_ACTIVITY_RESULT_ERROR_CODE) {
@@ -672,6 +693,32 @@ public class CreateCampaignActivity extends AppCompatActivity implements DatePic
         } catch (Exception e) {
             Log.e("onActivityResult", "something went wrong - " + e.toString());
         }
+    }
+
+    private Bitmap getBitmapFromUri(Uri uri) throws IOException {
+        ParcelFileDescriptor parcelFileDescriptor =
+                getContentResolver().openFileDescriptor(uri, "r");
+        FileDescriptor fileDescriptor = parcelFileDescriptor.getFileDescriptor();
+        Bitmap image = BitmapFactory.decodeFileDescriptor(fileDescriptor);
+        parcelFileDescriptor.close();
+        return image;
+    }
+
+    public String getImagePath(Uri uri) {
+        Cursor cursor = getContentResolver().query(uri, null, null, null, null);
+        cursor.moveToFirst();
+        String document_id = cursor.getString(0);
+        document_id = document_id.substring(document_id.lastIndexOf(":") + 1);
+        cursor.close();
+
+        cursor = getContentResolver().query(
+                android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                null, MediaStore.Images.Media._ID + " = ? ", new String[]{document_id}, null);
+        cursor.moveToFirst();
+        String path = cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.DATA));
+        cursor.close();
+
+        return path;
     }
 
     private String getFileExtension(Uri uri) {

@@ -59,26 +59,26 @@ public class InterestAdapter extends RecyclerView.Adapter<InterestAdapter.Intere
         InterestHolder(View itemView) {
             super(itemView);
             button = itemView.findViewById(R.id.btnInt);
-            button.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if (interestClicked != null) {
-                        Button selected_button = (Button) v;
-                        String tag = selected_button.getTag().toString();
-                        String text = selected_button.getText().toString();
-                        if (tag.contains("-0")) {
-                            selected_button.setTag(text + "-1");
-                            selected_button.setBackgroundResource(R.color.colorPrimaryDark);
-                            selected_button.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_check_black_24dp, 0);
-                        } else {
-                            selected_button.setTag(text + "-0");
-                            selected_button.setBackgroundResource(R.color.colorAccent);
-                            selected_button.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_add_black_24dp, 0);
-                        }
-                        interestClicked.onIClicked(v, getPosition(), tag.contains(text + "-0"));
-                    }
-                }
-            });
+//            button.setOnClickListener(new View.OnClickListener() {
+//                @Override
+//                public void onClick(View v) {
+//                    if (interestClicked != null) {
+//                        Button selected_button = (Button) v;
+//                        String tag = selected_button.getTag().toString();
+//                        String text = selected_button.getText().toString();
+//                        if (tag.contains("-0")) {
+//                            selected_button.setTag(text + "-1");
+//                            selected_button.setBackgroundResource(R.color.colorPrimaryDark);
+//                            selected_button.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_check_black_24dp, 0);
+//                        } else {
+//                            selected_button.setTag(text + "-0");
+//                            selected_button.setBackgroundResource(R.color.colorAccent);
+//                            selected_button.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_add_black_24dp, 0);
+//                        }
+//                        interestClicked.onIClicked(v, getPosition(), tag.contains(text + "-0"));
+//                    }
+//                }
+//            });
         }
     }
 }

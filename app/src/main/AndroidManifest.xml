@@ -12,6 +12,8 @@
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <supports-screens
         android:largeScreens="true"
@@ -28,9 +30,17 @@
         android:roundIcon="@mipmap/adsle_logo"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-
-        <activity android:name=".Activities.ViewCampaignActivity"/>
-        <activity android:name=".Activities.CampaignListActivity" />
+        <activity
+            android:name=".Activities.HowItWorksActivity"
+            android:label="@string/title_activity_works" />
+        <activity android:name=".Activities.GetCurrentAdActivity" />
+        <activity
+            android:name=".Activities.FeedbackActivity"
+            android:label="@string/title_activity_feedback" />
+        <activity android:name=".Activities.ViewCampaignActivity" />
+        <activity
+            android:name=".Activities.CampaignListActivity"
+            android:label="@string/title_activity_campaign_list" />
         <activity
             android:name=".Activities.CampaignTransactionActivity"
             android:label="@string/title_activity_transaction" />
@@ -80,7 +90,15 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/adsle_widget_info" />
         </receiver>
-        <service android:name=".services.UpdateService" />
+        <receiver android:name=".services.WakeLockBroadcast">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+
+        <service
+            android:name=".services.UpdateService"
+            android:enabled="true" />
 
         <activity android:name=".Activities.SignupActivity">
             <intent-filter>

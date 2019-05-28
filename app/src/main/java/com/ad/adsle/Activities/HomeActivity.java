@@ -10,12 +10,15 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 
+import com.ad.adsle.Adapter.AdsAdapter;
 import com.ad.adsle.Db.AppData;
 import com.ad.adsle.Information.CampaignInformation;
+import com.ad.adsle.Information.LocationDetails;
 import com.ad.adsle.Information.Plans;
 import com.ad.adsle.Information.Settings;
 import com.ad.adsle.Information.User;
 import com.ad.adsle.R;
+import com.ad.adsle.Util.AdUtils;
 import com.ad.adsle.Util.Utils;
 import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
@@ -47,6 +50,7 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import androidx.drawerlayout.widget.DrawerLayout;
@@ -55,12 +59,15 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
 import android.view.Menu;
+import android.widget.AdapterViewFlipper;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.ArrayList;
 import java.util.Map;
 
+import pl.droidsonroids.gif.GifImageView;
 import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper;
 
 public class HomeActivity extends AppCompatActivity
@@ -89,6 +96,14 @@ public class HomeActivity extends AppCompatActivity
 
     String total_cam_count = "", total_active_cam_count = "", total_inactive_cam_count = "";
 
+    //    GifImageView adImageView;
+//    TextView adTextView;
+    AdapterViewFlipper adapterViewFlipper;
+    AdsAdapter adapter;
+    ArrayList<CampaignInformation> campaignInformationArrayList = new ArrayList<>();
+
+    AdUtils adUtils;
+
     @Override
     protected void attachBaseContext(Context newBase) {
         super.attachBaseContext(CalligraphyContextWrapper.wrap(newBase));
@@ -98,7 +113,6 @@ public class HomeActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
-
         utils = new Utils(HomeActivity.this);
         data = new AppData(HomeActivity.this);
         user = data.getUser();
@@ -115,6 +129,16 @@ public class HomeActivity extends AppCompatActivity
         t1 = findViewById(R.id.TMenu1);
         t2 = findViewById(R.id.TMenu2);
         t3 = findViewById(R.id.TMenu3);
+
+        //adImageView = findViewById(R.id.ad_image);
+        //adTextView = findViewById(R.id.ad_text);
+        adapterViewFlipper = findViewById(R.id.adapter_view_flipper);
+        adapter = new AdsAdapter(HomeActivity.this);
+        adapterViewFlipper.setAdapter(adapter);
+        adapterViewFlipper.setFlipInterval(15000);
+
+        //adUtils = new AdUtils(HomeActivity.this, adImageView, adTextView);
+        adUtils = new AdUtils();
 
         viewCam = findViewById(R.id.cam_current_view);
         nBonus = findViewById(R.id.tvBonus);
@@ -146,6 +170,49 @@ public class HomeActivity extends AppCompatActivity
         });
 
         LoadNavHeaderDetails();
+        fetchAds();
+//        runOnUiThread(new Runnable() {
+//            @Override
+//            public void run() {
+//                adUtils.StartAds();
+//            }
+//        });
+    }
+
+    private void fetchAds() {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        LocationDetails locationDetails = data.getLocationDetails();
+        Query query = db.collection("campaigns")
+                .whereEqualTo("status", true)
+                .whereGreaterThanOrEqualTo("age_range_max", user.getAge())
+                .whereArrayContains("locationDetails", locationDetails.getCity());
+        query.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                if (task.isSuccessful()) {
+                    campaignInformationArrayList.clear();
+                    ArrayList<CampaignInformation> campaignInformationArray = new ArrayList<>();
+                    for (DocumentSnapshot snapshot : task.getResult().getDocuments()) {
+                        CampaignInformation ci = snapshot.toObject(CampaignInformation.class);
+                        campaignInformationArray.add(ci);
+                    }
+
+                    for (CampaignInformation ci : campaignInformationArray) {
+                        if (adUtils.checkCampaignStatus(ci) < 0) {
+                            campaignInformationArrayList.add(ci);
+                        }
+                    }
+                    adapter.setList(campaignInformationArrayList);
+                    adapterViewFlipper.startFlipping();
+                }
+            }
+        });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        nBonus.setText(utils.getExactDataValue(String.valueOf(user.getBonus_data())));
     }
 
     private void LoadNavHeaderDetails() {
@@ -154,7 +221,7 @@ public class HomeActivity extends AppCompatActivity
             rechargeLayout.setVisibility(View.GONE);
             camLayout.setVisibility(View.VISIBLE);
         }
-        nBonus.setText(utils.getExactDataValue(user.getBonus_data()));
+        nBonus.setText(utils.getExactDataValue(String.valueOf(user.getBonus_data())));
         name = navigationView.getHeaderView(0).findViewById(R.id.tvName);
         email = navigationView.getHeaderView(0).findViewById(R.id.tvEmail);
         name.setText(user.getName());
@@ -223,7 +290,7 @@ public class HomeActivity extends AppCompatActivity
     }
 
     private boolean dataCheck() {
-        long current_data = Long.parseLong(user.getBonus_data());
+        long current_data = user.getBonus_data();
         long start_data = settings.getWithdrawal_data_check();//524288000;
         return (current_data >= start_data);
     }
@@ -350,17 +417,23 @@ public class HomeActivity extends AppCompatActivity
         if (id == R.id.nav_manage) {
             // Handle the camera action
             startActivity(new Intent(HomeActivity.this, CampaignListActivity.class));
-        } else if (id == R.id.nav_trans) {
+        }
+        if (id == R.id.nav_how) {
+            startActivity(new Intent(HomeActivity.this, HowItWorksActivity.class));
+        }
+        if (id == R.id.nav_trans) {
             startActivity(new Intent(HomeActivity.this, CampaignTransactionActivity.class));
         }
         if (id == R.id.nav_invite) {
             startActivity(new Intent(HomeActivity.this, InviteActivity.class));
-        } else if (id == R.id.nav_profile) {
+        }
+        if (id == R.id.nav_profile) {
             startActivity(new Intent(HomeActivity.this, ProfileActivity.class));
         }
         if (id == R.id.nav_data_balance) {
             CheckDataBalance();
-        } else if (id == R.id.nav_logout) {
+        }
+        if (id == R.id.nav_logout) {
             new MaterialDialog.Builder(HomeActivity.this)
                     .title("Confirmation")
                     .content("Log me out now!")
@@ -373,6 +446,17 @@ public class HomeActivity extends AppCompatActivity
                             finish();
                         }
                     })
+                    .show();
+        }
+        if (id == R.id.nav_feedback) {
+            startActivity(new Intent(HomeActivity.this, FeedbackActivity.class));
+        }
+
+        if (id == R.id.nav_survey) {
+            new MaterialDialog.Builder(HomeActivity.this)
+                    .title("Message")
+                    .content("This feature is not yet available.")
+                    .negativeText("OK")
                     .show();
         }
 

@@ -13,6 +13,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.ad.adsle.Adapter.InterestAdapter;
@@ -22,8 +23,11 @@ import com.ad.adsle.Information.Interests;
 import com.ad.adsle.Information.User;
 import com.ad.adsle.R;
 import com.ad.adsle.Util.Utils;
+import com.afollestad.materialdialogs.DialogAction;
+import com.afollestad.materialdialogs.MaterialDialog;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
@@ -43,6 +47,9 @@ public class InterestActivity extends AppCompatActivity implements InterestClick
     ArrayList<String> interests = new ArrayList<>();
     ArrayList<String> selected_interests = new ArrayList<>();
 
+    FloatingActionButton floatingActionButton;
+    LinearLayout linearLayout;
+
     @Override
     protected void attachBaseContext(Context newBase) {
         super.attachBaseContext(CalligraphyContextWrapper.wrap(newBase));
@@ -57,6 +64,38 @@ public class InterestActivity extends AppCompatActivity implements InterestClick
         data = new AppData(InterestActivity.this);
         adapter = new InterestAdapter(InterestActivity.this, this);
         recyclerView = findViewById(R.id.recycler_view);
+        linearLayout = findViewById(R.id.linerLayout);
+        floatingActionButton = findViewById(R.id.fab);
+        floatingActionButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                new MaterialDialog.Builder(InterestActivity.this)
+                        .title("Select your interests")
+                        .items(interests)
+                        .itemsCallbackMultiChoice(null, new MaterialDialog.ListCallbackMultiChoice() {
+                            @Override
+                            public boolean onSelection(MaterialDialog dialog, Integer[] which, CharSequence[] text) {
+                                selected_interests.clear();
+                                for (CharSequence item : text) {
+                                    selected_interests.add(String.valueOf(item));
+                                }
+                                adapter.updateView(selected_interests);
+                                if (selected_interests.size() > 0) {
+                                    linearLayout.setVisibility(View.GONE);
+                                }
+                                return true;
+                            }
+                        }).positiveText("Done")
+                        .onPositive(new MaterialDialog.SingleButtonCallback() {
+                            @Override
+                            public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                                dialog.dismiss();
+                            }
+                        })
+                        .show();
+
+            }
+        });
         recyclerView.setLayoutManager(new LinearLayoutManager(InterestActivity.this));
         recyclerView.setAdapter(adapter);
 
@@ -73,7 +112,7 @@ public class InterestActivity extends AppCompatActivity implements InterestClick
                     utils.dismissDialog();
                     interests.clear();
                     interests = (ArrayList<String>) task.getResult().get("data");
-                    adapter.updateView(interests);
+                    //adapter.updateView(interests);
                 } else {
                     errorOccurred();
                 }
@@ -129,12 +168,12 @@ public class InterestActivity extends AppCompatActivity implements InterestClick
 
     @Override
     public void onIClicked(View view, int position, boolean selected) {
-        Button selected_button = (Button) view;
-        String selected_text = selected_button.getText().toString();
-        if (selected) {
-            selected_interests.add(selected_text);
-        } else {
-            selected_interests.remove(selected_text);
-        }
+//        Button selected_button = (Button) view;
+//        String selected_text = selected_button.getText().toString();
+//        if (selected) {
+//            selected_interests.add(selected_text);
+//        } else {
+//            selected_interests.remove(selected_text);
+//        }
     }
 }

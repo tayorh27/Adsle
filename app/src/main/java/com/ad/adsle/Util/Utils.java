@@ -94,7 +94,7 @@ public class Utils {
         FileOutputStream fileOutputStream = null;
         try {
             String root = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).toString();
-            File myDir1 = new File(root + "/KIT/");
+            File myDir1 = new File(root + "/ADSLE/");
             myDir1.mkdirs();
             Calendar calendar = Calendar.getInstance();
             int day = calendar.get(Calendar.DAY_OF_MONTH);
@@ -104,10 +104,9 @@ public class Utils {
             File new_image_file = new File(myDir1.toString() + "/logo_" + username + "_" + (day + milli) + "" + (month + 1) + "" + year + "" + milli + "_" + new Random().nextInt(93564) + ".png");
             Log.e("dir", myDir1.toString() + "\n" + new_image_file.toString());
 
-            String dest = new_image_file.getPath();
-            new_file_path = dest;
+            new_file_path = new_image_file.getPath();
 
-            fileOutputStream = new FileOutputStream(dest);
+            fileOutputStream = new FileOutputStream(new_file_path);
             //Bitmap bitmap = BitmapFactory.decodeFile(file);
             bitmap.compress(Bitmap.CompressFormat.PNG, 100, fileOutputStream);
 

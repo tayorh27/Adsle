@@ -70,7 +70,7 @@ public class AppData {
         editor.putString("gender", user.getGender());
         editor.putString("religion", user.getReligion());
         editor.putString("tag", user.getTag());
-        editor.putString("bonus_data", user.getBonus_data());
+        editor.putLong("bonus_data", user.getBonus_data());
         editor.putString("referralCode", user.getReferralCode());
         editor.putString("referralLink", user.getReferralLink());
         editor.putString("msgId", user.getMsgId());
@@ -89,7 +89,7 @@ public class AppData {
                 prefs.getString("gender", ""),
                 prefs.getString("religion", ""),
                 prefs.getString("tag", ""),
-                prefs.getString("bonus_data", ""),
+                prefs.getLong("bonus_data", 0),
                 prefs.getString("referralCode", ""),
                 prefs.getString("referralLink", ""),
                 prefs.getString("msgId", ""),

@@ -38,7 +38,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Click on image above to select your campaign image in jpg/png/gif format."
+                android:text="Click on image above to select your campaign image in jpg/png/gif format. Image size must not be greater than 200KB."
                 android:textColor="@color/colorPrimaryDark"
                 android:textSize="12sp" />
 

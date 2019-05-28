@@ -17,11 +17,6 @@
             android:layout_margin="20dp"
             android:orientation="vertical">
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
-
                 <androidx.cardview.widget.CardView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -200,7 +195,7 @@
                 <ListView
                     android:id="@+id/list_view_cam_details"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
+                    android:layout_height="640dp"
                     android:dividerHeight="1dp"
                     android:divider="#ccc"
                     android:layout_marginTop="10dp">
@@ -208,8 +203,6 @@
                 </ListView>
 
             </LinearLayout>
-
-        </LinearLayout>
 
     </ScrollView>
 

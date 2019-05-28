@@ -102,4 +102,7 @@
     <string name="title_activity_payment">Make Payment</string>
     <string name="title_activity_transaction">Campaign Transactions</string>
     <string name="terms"><u>By registering, you have agreed to our Terms and Conditions</u></string>
+    <string name="title_activity_feedback">Feedback</string>
+    <string name="title_activity_campaign_list">My Campaigns</string>
+    <string name="title_activity_works">How It Works</string>
 </resources>

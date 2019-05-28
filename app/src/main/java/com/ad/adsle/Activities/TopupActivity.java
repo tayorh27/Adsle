@@ -133,13 +133,13 @@ public class TopupActivity extends AppCompatActivity {
                 if (task.isSuccessful()) {
                     User serverUser = task.getResult().toObject(User.class);
                     long debited_plan = Long.parseLong(plan.getData());
-                    long server_plan = Long.parseLong(serverUser.getBonus_data());
+                    long server_plan = serverUser.getBonus_data();
                     long newData = server_plan - debited_plan;
 
                     Map<String, Object> params = new HashMap<>();
                     params.put("bonus_data", newData);
                     dr.update(params);
-                    user.setBonus_data(String.valueOf(newData));
+                    user.setBonus_data(newData);
                     data.StoreUsers(user);
                     Toast.makeText(TopupActivity.this, msg, Toast.LENGTH_LONG).show();
                     startActivity(new Intent(TopupActivity.this, HomeActivity.class));

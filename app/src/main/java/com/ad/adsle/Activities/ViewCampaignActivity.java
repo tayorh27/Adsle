@@ -87,6 +87,7 @@ public class ViewCampaignActivity extends AppCompatActivity {
 
         stringList.add("Minimum Age Range:\n" + current_campaign.getAge_range_min());
         stringList.add("Maximum Age Range:\n" + current_campaign.getAge_range_max());
+        stringList.add("Total Reach:\n" + current_campaign.getCampaign_reach());
         stringList.add("Campaign Option:\n" + current_campaign.getCampaign_link_option());
         stringList.add("Campaign Link:\n" + current_campaign.getCampaign_link());
         stringList.add("Campaign Start Date:\n" + current_campaign.getCampaign_duration_start());

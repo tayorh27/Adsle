@@ -155,6 +155,7 @@ public class LoginActivity extends AppCompatActivity {
                                                                             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                                                                                 if (task.isSuccessful()) {
                                                                                     ArrayList<String> interests = (ArrayList<String>) task.getResult().get("data");
+                                                                                    Log.e("interests", "onComplete: " + interests.size());
                                                                                     if (interests.size() > 0) {
                                                                                         data.setInterestSelected(true);
                                                                                     }
