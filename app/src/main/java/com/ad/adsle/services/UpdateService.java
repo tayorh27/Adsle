@@ -42,6 +42,7 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.gif.GifDrawable;
 import com.bumptech.glide.request.target.AppWidgetTarget;
 import com.bumptech.glide.request.target.ImageViewTarget;
+import com.bumptech.glide.request.target.Target;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -64,6 +65,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
+
+import pl.droidsonroids.gif.AnimationListener;
 
 public class UpdateService extends IntentService {
 
@@ -154,7 +157,7 @@ public class UpdateService extends IntentService {
 
     @Override
     protected void onHandleIntent(@Nullable Intent intent) {
-        Log.e("Adsle", "onStartCommand: here");
+        Log.e("Adsle", "onHandleIntent: here");
         MyApplication.fetchSettings();
         GetAllCampaignForUser();
         WakeLockBroadcast.completeWakefulIntent(intent);
@@ -162,7 +165,7 @@ public class UpdateService extends IntentService {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-
+        Log.e("Adsle", "onStartCommand: here");
         return super.onStartCommand(intent, flags, startId);
     }
 
@@ -248,6 +251,10 @@ public class UpdateService extends IntentService {
 
         Log.e("UpdateService", "DisplayAndSaveData ================ 1");
         Log.e("UpdateService", "Campaign Type ================ " + campaignInformation.getCampaign_link_option());
+
+//        if(reach_number <= campaign_reach){
+//
+//        }
 
         String link_option = campaignInformation.getCampaign_link_option();
         if (link_option.contentEquals("App Install")) {
@@ -411,8 +418,8 @@ public class UpdateService extends IntentService {
         int days = (int) (diff / (1000 * 60 * 60 * 24));
 
         if (days > 0) {
-            campaignData.setExpired(true, campaignInformation.getId());
             updateCampaignStatus(false, campaignInformation.getId(), "status");
+            campaignData.setExpired(true, campaignInformation.getId());
         }
         //CheckForAppInstallsStatus();
     }
@@ -461,17 +468,19 @@ public class UpdateService extends IntentService {
             ImageView imageView = new ImageView(MyApplication.getAppContext());
             imageView.setId(R.id.appwidget_image);
             try {
-                ImageViewTarget<GifDrawable> imageViewTarget = new ImageViewTarget<GifDrawable>(imageView) {
-                    @Override
-                    protected void setResource(@Nullable GifDrawable resource) {
-                        resource.start();
-                    }
-                };
-                Glide.with(MyApplication.getAppContext())
+//                ImageViewTarget<GifDrawable> imageViewTarget = new ImageViewTarget<GifDrawable>() {
+//                    @Override
+//                    protected void setResource(@Nullable GifDrawable resource) {
+//                        resource.start();
+//                    }
+//                };
+                GifDrawable gifDrawable = Glide.with(MyApplication.getAppContext())
                         .asGif()
-                        .load(campaignInformation.getCampaign_image()).into(imageViewTarget);
-//                        .submit(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL)
-//                        .get();
+                        .load(campaignInformation.getCampaign_image())
+                        .submit(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL)
+                        .get();
+                pl.droidsonroids.gif.GifDrawable drawable = new pl.droidsonroids.gif.GifDrawable(gifDrawable.getBuffer());
+                view.setImageViewBitmap(R.id.appwidget_image, drawable.getCurrentFrame());
 //                //Bitmap bitmap = drawableToBitmap(drawable);
 //                Bitmap bitmap = (BitmapDrawable)drawable;
 //                view.setImageViewBitmap(R.id.appwidget_image, bitmap);

@@ -4,12 +4,13 @@ public class Settings {
 
     long signup_data, invite_bonus_data, reach_data, click_data, app_install_data, withdrawal_data_check, total_users;
     int amount_per_reach, amount_per_click, amount_per_app_install;
+    String paystack_public_key, paystack_secret_key;
 
     public Settings() {
 
     }
 
-    public Settings(long signup_data, long invite_bonus_data, long reach_data, long click_data, long app_install_data, long withdrawal_data_check, long total_users, int amount_per_reach, int amount_per_click, int amount_per_app_install) {
+    public Settings(long signup_data, long invite_bonus_data, long reach_data, long click_data, long app_install_data, long withdrawal_data_check, long total_users, int amount_per_reach, int amount_per_click, int amount_per_app_install, String paystack_public_key, String paystack_secret_key) {
         this.signup_data = signup_data;
         this.invite_bonus_data = invite_bonus_data;
         this.reach_data = reach_data;
@@ -20,6 +21,8 @@ public class Settings {
         this.amount_per_reach = amount_per_reach;
         this.amount_per_click = amount_per_click;
         this.amount_per_app_install = amount_per_app_install;
+        this.paystack_public_key = paystack_public_key;
+        this.paystack_secret_key = paystack_secret_key;
     }
 
     public long getSignup_data() {
@@ -100,5 +103,21 @@ public class Settings {
 
     public void setAmount_per_app_install(int amount_per_app_install) {
         this.amount_per_app_install = amount_per_app_install;
+    }
+
+    public String getPaystack_public_key() {
+        return paystack_public_key;
+    }
+
+    public void setPaystack_public_key(String paystack_public_key) {
+        this.paystack_public_key = paystack_public_key;
+    }
+
+    public String getPaystack_secret_key() {
+        return paystack_secret_key;
+    }
+
+    public void setPaystack_secret_key(String paystack_secret_key) {
+        this.paystack_secret_key = paystack_secret_key;
     }
 }

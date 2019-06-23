@@ -654,7 +654,7 @@ public class CreateCampaignActivity extends AppCompatActivity implements DatePic
                     CropImage.activity(data.getData())
                             .setGuidelines(CropImageView.Guidelines.ON)
                             .setAutoZoomEnabled(true)
-                            .setOutputCompressQuality(70)
+                            .setOutputCompressQuality(50)
                             .setOutputCompressFormat(Bitmap.CompressFormat.PNG)
                             .start(this);
                 }

@@ -74,10 +74,13 @@ public class ViewCampaignActivity extends AppCompatActivity {
             stringList.add("Religion:\n" + current_campaign.getReligion().get(0) + "," + current_campaign.getReligion().get(1));
         }
         StringBuilder _interest = new StringBuilder();
-        for (String text : current_campaign.getInterests()) {
-            _interest.append(text + ",");
+        String output_interest = "";
+        if (current_campaign.getInterests().size() > 0) {
+            for (String text : current_campaign.getInterests()) {
+                _interest.append(text + ",");
+            }
+            output_interest = _interest.toString().substring(0, _interest.toString().length() - 1);
         }
-        String output_interest = _interest.toString().substring(0, _interest.toString().length() - 1);
 
         StringBuilder _locations = new StringBuilder();
         for (String text : current_campaign.getLocationDetails()) {

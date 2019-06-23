@@ -110,6 +110,8 @@ public class AppData {
         editor.putInt("amount_per_reach", settings.getAmount_per_reach());
         editor.putInt("amount_per_click", settings.getAmount_per_click());
         editor.putInt("amount_per_app_install", settings.getAmount_per_app_install());
+        editor.putString("paystack_public_key", settings.getPaystack_public_key());
+        editor.putString("paystack_secret_key", settings.getPaystack_secret_key());
         editor.apply();
     }
 
@@ -124,7 +126,9 @@ public class AppData {
                 prefs.getLong("total_users", 0),
                 prefs.getInt("amount_per_reach", 25),
                 prefs.getInt("amount_per_click", 40),
-                prefs.getInt("amount_per_app_install", 120)
+                prefs.getInt("amount_per_app_install", 120),
+                prefs.getString("paystack_public_key", ""),
+                prefs.getString("paystack_secret_key", "")
         );
     }
 
@@ -197,6 +201,26 @@ public class AppData {
                 prefs.getString("token", ""),
                 prefs.getString("date_expires", ""),
         };
+    }
+
+    public void setFromHomeActivity(boolean value) {
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putBoolean("isFromHomeActivity", value);
+        editor.apply();
+    }
+
+    public boolean getFromHomeActivity() {
+        return prefs.getBoolean("isFromHomeActivity", false);
+    }
+
+    public void setFirstTime(boolean value) {
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putBoolean("first_time", value);
+        editor.apply();
+    }
+
+    public boolean getFirstTime() {
+        return prefs.getBoolean("first_time", true);
     }
 
     public void Logout() {

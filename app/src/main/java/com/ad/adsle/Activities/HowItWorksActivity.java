@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.media.MediaPlayer;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -32,7 +33,7 @@ public class HowItWorksActivity extends AppCompatActivity {
 
         videoView = findViewById(R.id.video_view);
 
-        videoView.setVideoPath("https://www.ebookfrenzy.com/android_book/movie.mp4");
+        videoView.setVideoURI(Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.howitworksadsle));
 
         mediaController = new MediaController(this);
         mediaController.setAnchorView(videoView);

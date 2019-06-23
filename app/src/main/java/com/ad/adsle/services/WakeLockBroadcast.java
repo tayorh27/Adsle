@@ -11,6 +11,10 @@ public class WakeLockBroadcast extends GCoreWakefulBroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         Intent service = new Intent(context, UpdateService.class);
         //Log.i("SimpleWakefulReceiver", "Starting service @ " + SystemClock.elapsedRealtime());
-        startWakefulService(context, service);
+        try {
+            startWakefulService(context, service);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

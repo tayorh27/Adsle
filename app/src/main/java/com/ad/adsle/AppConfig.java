@@ -39,3 +39,74 @@ public class AppConfig {
 
     public static final String DATA_API_URL = "https://clients.primeairtime.com/api/";
 }
+
+
+
+//    String link_option = campaignInformation.getCampaign_link_option();
+//        if (link_option.contentEquals("App Install")) {
+//                Log.e("UpdateService", "DisplayAndSaveData ================ 2");
+//                if (app_install_number < campaign_reach) {
+//        if (campaignData.getAppInstallId(campaignInformation.getId())) {
+//        updateCampaignData(false, campaignInformation.getId(), "views_number", 1);
+//        } else {
+//        boolean isAppInstalled = CheckForAppInstallsStatus();
+//        if (isAppInstalled) {
+//        campaignData.setAppInstallId(true, campaignInformation.getId());///check here
+//        updateCampaignData(true, campaignInformation.getId(), "app_installs_number", 1);
+//        updateCampaignData(false, campaignInformation.getId(), "views_number", 1);
+//        } else {
+//        updateCampaignData(false, campaignInformation.getId(), "views_number", 1);
+//        }
+//        }
+//        updateWidgetRemoteView();
+//        int newNext = next + 1;
+//        DisplayNextCampaign(newNext);
+//        } else {
+//        updateWidgetRemoteView();
+//        updateCampaignData(false, campaignInformation.getId(), "views_number", 1);
+//        int newNext = next + 1;
+//        DisplayNextCampaign(newNext);
+//        }
+//        } else if (link_option.contentEquals("Click")) {
+//        Log.e("UpdateService", "DisplayAndSaveData ================ 3");
+//        if (click_number < campaign_reach) {
+//        if (campaignData.getClicked(campaignInformation.getId())) {
+//        Log.e("UpdateService", "DisplayAndSaveData ================ 3.1");
+//        updateCampaignData(false, campaignInformation.getId(), "views_number", 1);
+//        } else {
+//        Log.e("UpdateService", "DisplayAndSaveData ================ 3.2");
+//        updateCampaignData(false, campaignInformation.getId(), "views_number", 1);
+//        }
+//        Log.e("UpdateService", "DisplayAndSaveData ================ 3.3");
+//        updateWidgetRemoteView();
+//        int newNext = next + 1;
+//        DisplayNextCampaign(newNext);
+//        } else {
+//        updateWidgetRemoteView();
+//        updateCampaignData(false, campaignInformation.getId(), "views_number", 1);
+//        Log.e("UpdateService", "DisplayAndSaveData ================ 3.4");
+//        int newNext = next + 1;
+//        DisplayNextCampaign(newNext);
+//        }
+//        } else if (link_option.contentEquals("Reach")) {
+//        Log.e("UpdateService", "DisplayAndSaveData ================ 4");
+//        if (reach_number < campaign_reach) {
+//        if (campaignData.getReached(campaignInformation.getId())) {
+//        Log.e("UpdateService", "DisplayAndSaveData ================ 4.1");
+//        updateCampaignData(false, campaignInformation.getId(), "views_number", 1);
+//        } else {
+//        Log.e("UpdateService", "DisplayAndSaveData ================ 4.2");
+//        campaignData.setReached(true, campaignInformation.getId());
+//        updateCampaignData(true, campaignInformation.getId(), "reach_number", 1);
+//        updateCampaignData(false, campaignInformation.getId(), "views_number", 1);
+//        }
+//        updateWidgetRemoteView();
+//        int newNext = next + 1;
+//        DisplayNextCampaign(newNext);
+//        } else {
+//        updateWidgetRemoteView();
+//        updateCampaignData(false, campaignInformation.getId(), "views_number", 1);
+//        int newNext = next + 1;
+//        DisplayNextCampaign(newNext);
+//        }
+//        }

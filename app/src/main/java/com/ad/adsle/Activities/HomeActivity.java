@@ -1,6 +1,8 @@
 package com.ad.adsle.Activities;
 
 import android.app.PendingIntent;
+import android.appwidget.AppWidgetManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -8,6 +10,7 @@ import android.content.pm.ShortcutInfo;
 import android.content.pm.ShortcutManager;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 
 import com.ad.adsle.Adapter.AdsAdapter;
@@ -20,6 +23,7 @@ import com.ad.adsle.Information.User;
 import com.ad.adsle.R;
 import com.ad.adsle.Util.AdUtils;
 import com.ad.adsle.Util.Utils;
+import com.ad.adsle.services.UpdateService;
 import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.github.bijoysingh.starter.util.PermissionManager;
@@ -35,6 +39,7 @@ import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.widget.AppCompatEditText;
 import androidx.appcompat.widget.AppCompatTextView;
 import androidx.core.app.ActivityCompat;
@@ -82,6 +87,7 @@ public class HomeActivity extends AppCompatActivity
     NavigationView navigationView;
 
     static final int CONTACT_PICKER_REQUEST = 123;
+    static final int REQUEST_BIND_APPWIDGET = 321;
     private static int PLANS_REQUEST = 143;
     private static int REQUEST_INVITE = 642;
 
@@ -171,12 +177,72 @@ public class HomeActivity extends AppCompatActivity
 
         LoadNavHeaderDetails();
         fetchAds();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (data.getFromHomeActivity()) {
+                PinAppWidget();
+            }
+        }
+        if(data.getFirstTime()){
+            if (user.getTag().contentEquals("user")) {
+                new MaterialDialog.Builder(HomeActivity.this)
+                        .title("How It works")
+                        .content("To start getting free data, click below to know how to set it up.")
+                        .cancelable(false)
+                        .canceledOnTouchOutside(false)
+                        .positiveText("How It Works")
+                        .negativeText("Cancel")
+                        .onNegative(new MaterialDialog.SingleButtonCallback() {
+                            @Override
+                            public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                                dialog.dismiss();
+                            }
+                        })
+                        .onPositive(new MaterialDialog.SingleButtonCallback() {
+                            @Override
+                            public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                                data.setFirstTime(false);
+                                startActivity(new Intent(HomeActivity.this, HowItWorksActivity.class));
+                            }
+                        }).show();
+            }
+        }
 //        runOnUiThread(new Runnable() {
 //            @Override
 //            public void run() {
 //                adUtils.StartAds();
 //            }
 //        });
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private void PinAppWidget() {
+        AppWidgetManager appWidgetManager = getSystemService(AppWidgetManager.class);
+        ComponentName myProvider =
+                new ComponentName(this, AdsleWidget.class);
+        Log.e("MyApplication", "PinAppWidget: was called 1");
+
+//        Intent intent = new Intent(AppWidgetManager.ACTION_APPWIDGET_BIND);
+//        //intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
+//        intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_PROVIDER, myProvider);
+//        // This is the options bundle discussed above
+//        //intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_OPTIONS, options);
+//        startActivityForResult(intent, REQUEST_BIND_APPWIDGET);
+
+        if (appWidgetManager.isRequestPinAppWidgetSupported()) {
+            // Create the PendingIntent object only if your app needs to be notified
+            // that the user allowed the widget to be pinned. Note that, if the pinning
+            // operation fails, your app isn't notified.
+            Intent pinnedWidgetCallbackIntent = new Intent(this, UpdateService.class);
+            pinnedWidgetCallbackIntent.putExtra("pinnedWidgetCallbackIntent", true);
+            // Configure the intent so that your app's broadcast receiver gets
+            // the callback successfully. This callback receives the ID of the
+            // newly-pinned widget (EXTRA_APPWIDGET_ID).
+            PendingIntent successCallback = PendingIntent.getBroadcast(this, 0,
+                    pinnedWidgetCallbackIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+            appWidgetManager.requestPinAppWidget(myProvider, null, successCallback);
+            Log.e("MyApplication", "PinAppWidget: was called 2");
+        }
     }
 
     private void fetchAds() {
@@ -452,13 +518,13 @@ public class HomeActivity extends AppCompatActivity
             startActivity(new Intent(HomeActivity.this, FeedbackActivity.class));
         }
 
-        if (id == R.id.nav_survey) {
-            new MaterialDialog.Builder(HomeActivity.this)
-                    .title("Message")
-                    .content("This feature is not yet available.")
-                    .negativeText("OK")
-                    .show();
-        }
+//        if (id == R.id.nav_survey) {
+//            new MaterialDialog.Builder(HomeActivity.this)
+//                    .title("Message")
+//                    .content("This feature is not yet available.")
+//                    .negativeText("OK")
+//                    .show();
+//        }
 
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);

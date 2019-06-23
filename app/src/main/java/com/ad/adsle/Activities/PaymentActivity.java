@@ -10,7 +10,9 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.ad.adsle.Db.AppData;
+import com.ad.adsle.Information.Settings;
 import com.ad.adsle.Information.User;
+import com.ad.adsle.MyApplication;
 import com.ad.adsle.R;
 import com.ad.adsle.Util.Utils;
 import com.ad.adsle.network.TLSSocketFactory;
@@ -50,9 +52,12 @@ public class PaymentActivity extends AppCompatActivity implements OnCardFormSubm
     int total_amount = 0;
     Card payStackCard;
     Transaction transaction;
-    String paystack_verify_url = "https://api.paystack.co/transaction/", paystack_secret_key = "sk_test_4108c44ace23af3893b4f7959bf810a3f15cac39", paystack_public_key = "pk_test_fe5e7a92b2ac1e14defe1172eec62d743f974915";
+    String paystack_verify_url = "https://api.paystack.co/transaction/";
+    String paystack_secret_key = "", paystack_public_key = "";
+    //String paystack_secret_key = "sk_test_4108c44ace23af3893b4f7959bf810a3f15cac39", paystack_public_key = "pk_test_fe5e7a92b2ac1e14defe1172eec62d743f974915";
     String card_reference = "";
     CardForm cardForm;
+    Settings settings;
 
     private static List<ConnectionSpec> createConnectionSpecs() {
         ConnectionSpec spec = new ConnectionSpec.Builder(ConnectionSpec.MODERN_TLS)
@@ -87,6 +92,7 @@ public class PaymentActivity extends AppCompatActivity implements OnCardFormSubm
         cardForm = findViewById(R.id.card_form);
         utils = new Utils(PaymentActivity.this);
         data = new AppData(PaymentActivity.this);
+        settings = data.getSettings();
         user = data.getUser();
         total_amount = (int) getIntent().getExtras().getLong("total_amount", 0);
         //Log.e("total_amount", "onCreate: " + total_amount);
@@ -98,6 +104,8 @@ public class PaymentActivity extends AppCompatActivity implements OnCardFormSubm
                 .actionLabel("SAVE")
                 .setup(PaymentActivity.this);
         cardForm.setOnCardFormSubmitListener(this);
+        paystack_public_key = settings.getPaystack_public_key();
+        paystack_secret_key = settings.getPaystack_secret_key();
     }
 
     @Override

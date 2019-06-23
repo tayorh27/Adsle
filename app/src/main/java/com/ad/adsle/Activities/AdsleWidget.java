@@ -75,8 +75,14 @@ public class AdsleWidget extends AppWidgetProvider {
     @Override
     public void onReceive(Context context, Intent intent) {
         super.onReceive(context, intent);
-//        Log.e("onReceive", "onReceive: is called 5");
-//        Log.e("onReceive", "onReceive: " + intent.toString());
+        Log.e("onReceive", "onReceive: is called 5");
+        if (intent != null) {
+            if (intent.hasExtra("pinnedWidgetCallbackIntent")) {
+                boolean isFromHomeActivity = intent.getBooleanExtra("pinnedWidgetCallbackIntent", false);
+                data = new AppData(MyApplication.getAppContext());
+                data.setFromHomeActivity(isFromHomeActivity);
+            }
+        }
 //        Log.e("onReceive", "onReceive");
 //        Log.e("onReceive", intent.getAction());
 //        Toast.makeText(context, "Button Clicked.....!!!", Toast.LENGTH_SHORT).show();
