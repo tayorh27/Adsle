@@ -2,15 +2,34 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="120dp"
-    android:background="@drawable/ad_image_view"
+    android:background="#FDF8F8"
     android:orientation="vertical"
     tools:context=".Activities.HomeActivity">
 
-    <AdapterViewFlipper
-        android:id="@+id/adapter_view_flipper"
+    <!--<AdapterViewFlipper-->
+    <!--android:id="@+id/adapter_view_flipper"-->
+    <!--android:layout_width="match_parent"-->
+    <!--android:layout_height="match_parent"-->
+    <!--android:autoStart="true"-->
+    <!--android:loopViews="true" />-->
+
+    <ImageView
+        android:id="@+id/appwidget_image"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:autoStart="true"
-        android:loopViews="true" />
+        android:layout_height="100dp"
+        android:scaleType="centerCrop"
+        android:src="@drawable/ad_image_view" />
+
+    <TextView
+        android:id="@+id/appwidget_text"
+        android:layout_width="wrap_content"
+        android:layout_height="20dp"
+        android:layout_gravity="right"
+        android:layout_marginRight="8dp"
+        android:contentDescription="@string/appwidget_text"
+        android:text="Powered by Adsle"
+        android:textColor="@color/fabColor"
+        android:textSize="14sp"
+        android:textStyle="bold|italic" />
 
 </LinearLayout>

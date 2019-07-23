@@ -94,7 +94,7 @@ public class TopupActivity extends AppCompatActivity {
     private void LoadUserWithData() {
         utils.displayDialog("Sending data...");
         final String token = data.getTokenForData()[0];
-        final String sms = "You have successfully been recharged with " + utils.getExactDataValue(plan.getData() + " by Adsle.");
+        final String sms = "You have successfully been recharged with " + utils.getExactDataValue(plan.getData()) + " by Adsle.";
         final String msg = "Your recharge of " + utils.getExactDataValue(plan.getData()) + " to " + rechargeNumber + " is successful.";
         new Thread(new Runnable() {
             @Override

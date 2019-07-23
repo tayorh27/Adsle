@@ -346,7 +346,7 @@ public class SignupActivity extends AppCompatActivity implements DatePickerDialo
                 if (task.isSuccessful()) {
                     String token = task.getResult().getToken();
                     data.setRegistrationToken(token);
-                    User user = new User("", name, email, number, 0, gender, religion, tag, settings.getSignup_data(), refCode, "", data.getRegistrationToken(), android_id, new Date().toLocaleString());
+                    User user = new User("", name, email, number, 0, gender, religion, tag, settings.getSignup_data(), refCode, "", data.getRegistrationToken(), android_id, new Date().toLocaleString(),"0");
                     if (tag.contentEquals("user")) {
                         Calendar calendar = Calendar.getInstance();
                         int year_now = calendar.get(Calendar.YEAR);
@@ -482,16 +482,18 @@ public class SignupActivity extends AppCompatActivity implements DatePickerDialo
 
     private void GiveUserData() {
         if (!TextUtils.isEmpty(referral) || !TextUtils.isEmpty(refEmail)) {
-            final long mb = Long.parseLong(dataToGive);
+            //final long mb = Long.parseLong(dataToGive);
+            final long mb = settings.getSignup_data();
             FirebaseFirestore db = FirebaseFirestore.getInstance();
             DocumentReference docRef = db.collection("users").document(refEmail).collection("user-data").document("signup");
             docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                 @Override
                 public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                     if (task.isSuccessful()) {
-                        Map<String, Object> snapshot = task.getResult().getData();
-                        long data = Long.parseLong(String.valueOf(snapshot != null ? snapshot.get("bonus_data") : "0"));
-                        int count = Integer.parseInt(String.valueOf(snapshot != null ? snapshot.get("invite_count") : "0"));
+                        DocumentSnapshot snapshot = task.getResult();
+                        User refUser = snapshot.toObject(User.class);
+                        long data = refUser != null ? refUser.getBonus_data() : 0;
+                        int count = Integer.parseInt(refUser.getInvite_count() != null ? refUser.getInvite_count() : "0");
                         int newCount = count + 1;
                         if (newCount < 5) {
                             Map<String, Object> param = new HashMap<>();

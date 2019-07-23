@@ -14,6 +14,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.ParcelFileDescriptor;
 import android.provider.MediaStore;
@@ -36,6 +37,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.ad.adsle.AppConfig;
 import com.ad.adsle.Db.AppData;
 import com.ad.adsle.Information.AppDetail;
 import com.ad.adsle.Information.CampaignInformation;
@@ -64,7 +66,10 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldPath;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -76,6 +81,9 @@ import com.tsongkha.spinnerdatepicker.SpinnerDatePickerDialogBuilder;
 import com.wajahatkarim3.easyflipview.EasyFlipView;
 
 import org.joda.time.DateTime;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -87,8 +95,12 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.RequestBody;
 import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper;
 
 public class CreateCampaignActivity extends AppCompatActivity implements DatePickerDialog.OnDateSetListener {
@@ -788,6 +800,7 @@ public class CreateCampaignActivity extends AppCompatActivity implements DatePic
                     Transactions transactions = new Transactions(id, campaignInformation.getId(), String.valueOf(total_amount), new Date().toLocaleString(), card_reference);
                     db.collection("users").document(user.getEmail()).collection("user-data").document("transactions").collection("user-trans").document(id).set(transactions);
                     Toast.makeText(CreateCampaignActivity.this, "Campaign created successfully", Toast.LENGTH_LONG).show();
+                    new BackgroundSendNotificationToUsers().execute();
                     startActivity(new Intent(CreateCampaignActivity.this, HomeActivity.class));
                     finish();
                 } else {
@@ -831,6 +844,84 @@ public class CreateCampaignActivity extends AppCompatActivity implements DatePic
             end_selected_date = dayOfMonth + "-" + monthOfYear + "-" + year;
             String _selected_date = dayOfMonth + "-" + (monthOfYear + 1) + "-" + year;
             btnExpire2.setText(_selected_date);
+        }
+    }
+
+    boolean isDone = false;
+
+    private void getAllUsersWithinLocation() {
+        StringBuilder stringBuilder = new StringBuilder();
+        FieldPath fp = FieldPath.of("user-data", "location-data");
+        FieldPath fpUser = FieldPath.of("user-data", "signup");
+        FirebaseFirestore.getInstance().collection("users").get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                if (task.isSuccessful()) {
+                    if (task.getResult() != null) {
+                        List<DocumentSnapshot> ds = task.getResult().getDocuments();
+                        for (DocumentSnapshot snapshot : ds) {
+                            LocationDetails ld = snapshot.get(fp, LocationDetails.class);
+                            User ur = snapshot.get(fpUser, User.class);
+                            String city = ld.getCity();
+                            if (selected_locations.contains(city)) {
+                                stringBuilder.append(ur.getMsgId() + ",");
+                            }
+                        }
+                        Log.e("msgs", stringBuilder.toString());
+                        if (!isDone) {
+                            SendNotification(stringBuilder.deleteCharAt(stringBuilder.length() - 1).toString());
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    private void SendNotification(String userMsgIds) {
+        final JSONObject main_object = new JSONObject();
+        try {
+            main_object.put("registration_ids", new JSONArray(userMsgIds.split(",")));
+            JSONObject notify_object = new JSONObject();
+            String body = "";
+            notify_object.put("body", body);
+            notify_object.put("title", "Adsle - New Campaign");
+            main_object.put("notification", notify_object);
+            String url = AppConfig.FCM_URL;
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        String mm = post(url, main_object.toString());
+                        isDone = true;
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }).start();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    String post(String url, String json) throws IOException {
+        OkHttpClient client = new OkHttpClient();
+        RequestBody body = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), json);
+        okhttp3.Request request = new okhttp3.Request.Builder()
+                .url(url)
+                .post(body)
+                .addHeader("Authorization", "key=" + AppConfig.SERVER_KEY)
+                .addHeader("Content-Type", "application/json")
+                .build();
+        okhttp3.Response response = client.newCall(request).execute();
+        return response.body().string();
+    }
+
+    class BackgroundSendNotificationToUsers extends AsyncTask<Void, Void, Void> {
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            getAllUsersWithinLocation();
+            return null;
         }
     }
 }

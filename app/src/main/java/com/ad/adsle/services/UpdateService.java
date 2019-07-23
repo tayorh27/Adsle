@@ -170,7 +170,7 @@ public class UpdateService extends IntentService {
     }
 
 
-    private void GetAllCampaignForUser() {
+    public void GetAllCampaignForUser() {
         data = new AppData(MyApplication.getAppContext());
         utils = new Utils(MyApplication.getAppContext());
         campaignData = new CampaignData(MyApplication.getAppContext());
@@ -218,7 +218,7 @@ public class UpdateService extends IntentService {
         });
     }//if store data exists. app install and views. clicks not working
 
-    private void DisplayAndSaveData(int next) {
+    public void DisplayAndSaveData(int next) {
         if (next >= campaignData.getCampaignSize()) {
             campaignData.setNext(0);
 //            DisplayAndSaveData(campaignData.getNext());
@@ -377,7 +377,7 @@ public class UpdateService extends IntentService {
                 //Log.e("DisplayNextCampaign", "DisplayNextCampaign: =========== " + campaignInformationArrayList.get(campaignData.getNext()).getTitle());
                 DisplayAndSaveData(campaignData.getNext());
             }
-        }, 15000);
+        }, 60000);
     }
 
     private boolean CheckForAppInstallsStatus() {

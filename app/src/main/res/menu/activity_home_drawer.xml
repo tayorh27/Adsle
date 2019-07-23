@@ -49,9 +49,9 @@
                 <!--android:title="Create Survey" />-->
 
             <item
-                android:id="@+id/nav_how"
-                android:icon="@drawable/ic_info_black_24dp"
-                android:title="How It Works" />
+                android:id="@+id/nav_ads"
+                android:icon="@drawable/ic_menu_black_24dp"
+                android:title="View Ads" />
         </menu>
     </item>
 

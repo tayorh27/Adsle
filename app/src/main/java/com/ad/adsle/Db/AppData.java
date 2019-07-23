@@ -76,6 +76,7 @@ public class AppData {
         editor.putString("msgId", user.getMsgId());
         editor.putString("deviceId", user.getDeviceId());
         editor.putString("created_date", user.getCreated_date());
+        editor.putString("invite_count", user.getInvite_count());
         editor.apply();
     }
 
@@ -94,7 +95,8 @@ public class AppData {
                 prefs.getString("referralLink", ""),
                 prefs.getString("msgId", ""),
                 prefs.getString("deviceId", ""),
-                prefs.getString("created_date", "")
+                prefs.getString("created_date", ""),
+                prefs.getString("invite_count", "")
         );
     }
 

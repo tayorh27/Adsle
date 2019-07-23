@@ -14,7 +14,9 @@ import android.os.Build;
 import android.os.Bundle;
 
 import com.ad.adsle.Adapter.AdsAdapter;
+import com.ad.adsle.Callbacks.AdsCallback;
 import com.ad.adsle.Db.AppData;
+import com.ad.adsle.Db.CampaignData;
 import com.ad.adsle.Information.CampaignInformation;
 import com.ad.adsle.Information.LocationDetails;
 import com.ad.adsle.Information.Plans;
@@ -26,6 +28,7 @@ import com.ad.adsle.Util.Utils;
 import com.ad.adsle.services.UpdateService;
 import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
+import com.bumptech.glide.Glide;
 import com.github.bijoysingh.starter.util.PermissionManager;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -65,6 +68,7 @@ import androidx.appcompat.widget.Toolbar;
 
 import android.view.Menu;
 import android.widget.AdapterViewFlipper;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -72,11 +76,10 @@ import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.Map;
 
-import pl.droidsonroids.gif.GifImageView;
 import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper;
 
 public class HomeActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener {
+        implements NavigationView.OnNavigationItemSelectedListener, AdsCallback {
 
     AppData data;
     Utils utils;
@@ -90,6 +93,8 @@ public class HomeActivity extends AppCompatActivity
     static final int REQUEST_BIND_APPWIDGET = 321;
     private static int PLANS_REQUEST = 143;
     private static int REQUEST_INVITE = 642;
+
+    UpdateService updateService;
 
     Plans plan = null;
     AppCompatTextView edit_plan;
@@ -109,6 +114,9 @@ public class HomeActivity extends AppCompatActivity
     ArrayList<CampaignInformation> campaignInformationArrayList = new ArrayList<>();
 
     AdUtils adUtils;
+    ImageView adImageView;
+    TextView adTextView;
+    CampaignData campaignData;
 
     @Override
     protected void attachBaseContext(Context newBase) {
@@ -119,8 +127,10 @@ public class HomeActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
+        updateService = new UpdateService();
         utils = new Utils(HomeActivity.this);
         data = new AppData(HomeActivity.this);
+        campaignData = new CampaignData(HomeActivity.this);
         user = data.getUser();
         settings = data.getSettings();
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -138,13 +148,16 @@ public class HomeActivity extends AppCompatActivity
 
         //adImageView = findViewById(R.id.ad_image);
         //adTextView = findViewById(R.id.ad_text);
-        adapterViewFlipper = findViewById(R.id.adapter_view_flipper);
+        //adapterViewFlipper = findViewById(R.id.adapter_view_flipper);
         adapter = new AdsAdapter(HomeActivity.this);
-        adapterViewFlipper.setAdapter(adapter);
-        adapterViewFlipper.setFlipInterval(15000);
+        //adapterViewFlipper.setAdapter(adapter);
+        //adapterViewFlipper.setFlipInterval(15000);
+
+        adImageView = findViewById(R.id.appwidget_image);
+        adTextView = findViewById(R.id.appwidget_text);
 
         //adUtils = new AdUtils(HomeActivity.this, adImageView, adTextView);
-        adUtils = new AdUtils();
+        adUtils = new AdUtils(HomeActivity.this, this);
 
         viewCam = findViewById(R.id.cam_current_view);
         nBonus = findViewById(R.id.tvBonus);
@@ -176,36 +189,40 @@ public class HomeActivity extends AppCompatActivity
         });
 
         LoadNavHeaderDetails();
-        fetchAds();
+        //adUtils.StartAds();
+        //fetchAds();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            if (data.getFromHomeActivity()) {
+//            if (data.getFromHomeActivity()) {
+//
+//            }
+            if(data.getFirstTime()) {
                 PinAppWidget();
             }
         }
-        if(data.getFirstTime()){
-            if (user.getTag().contentEquals("user")) {
-                new MaterialDialog.Builder(HomeActivity.this)
-                        .title("How It works")
-                        .content("To start getting free data, click below to know how to set it up.")
-                        .cancelable(false)
-                        .canceledOnTouchOutside(false)
-                        .positiveText("How It Works")
-                        .negativeText("Cancel")
-                        .onNegative(new MaterialDialog.SingleButtonCallback() {
-                            @Override
-                            public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
-                                dialog.dismiss();
-                            }
-                        })
-                        .onPositive(new MaterialDialog.SingleButtonCallback() {
-                            @Override
-                            public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
-                                data.setFirstTime(false);
-                                startActivity(new Intent(HomeActivity.this, HowItWorksActivity.class));
-                            }
-                        }).show();
-            }
-        }
+//        if(data.getFirstTime()){
+//            if (user.getTag().contentEquals("user")) {
+//                new MaterialDialog.Builder(HomeActivity.this)
+//                        .title("How It works")
+//                        .content("To start getting free data, click below to know how to set it up.")
+//                        .cancelable(false)
+//                        .canceledOnTouchOutside(false)
+//                        .positiveText("How It Works")
+//                        .negativeText("Cancel")
+//                        .onNegative(new MaterialDialog.SingleButtonCallback() {
+//                            @Override
+//                            public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+//                                dialog.dismiss();
+//                            }
+//                        })
+//                        .onPositive(new MaterialDialog.SingleButtonCallback() {
+//                            @Override
+//                            public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+//                                data.setFirstTime(false);
+//                                startActivity(new Intent(HomeActivity.this, HowItWorksActivity.class));
+//                            }
+//                        }).show();
+//            }
+//        }
 //        runOnUiThread(new Runnable() {
 //            @Override
 //            public void run() {
@@ -219,7 +236,7 @@ public class HomeActivity extends AppCompatActivity
         AppWidgetManager appWidgetManager = getSystemService(AppWidgetManager.class);
         ComponentName myProvider =
                 new ComponentName(this, AdsleWidget.class);
-        Log.e("MyApplication", "PinAppWidget: was called 1");
+        //Log.e("MyApplication", "PinAppWidget: was called 1");
 
 //        Intent intent = new Intent(AppWidgetManager.ACTION_APPWIDGET_BIND);
 //        //intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
@@ -241,7 +258,8 @@ public class HomeActivity extends AppCompatActivity
                     pinnedWidgetCallbackIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
             appWidgetManager.requestPinAppWidget(myProvider, null, successCallback);
-            Log.e("MyApplication", "PinAppWidget: was called 2");
+            data.setFirstTime(false);
+            //Log.e("MyApplication", "PinAppWidget: was called 2");
         }
     }
 
@@ -273,6 +291,10 @@ public class HomeActivity extends AppCompatActivity
                 }
             }
         });
+    }
+
+    public void viewAds(View view){
+        startActivity(new Intent(HomeActivity.this, AdsActivity.class));
     }
 
     @Override
@@ -484,8 +506,9 @@ public class HomeActivity extends AppCompatActivity
             // Handle the camera action
             startActivity(new Intent(HomeActivity.this, CampaignListActivity.class));
         }
-        if (id == R.id.nav_how) {
-            startActivity(new Intent(HomeActivity.this, HowItWorksActivity.class));
+        if (id == R.id.nav_ads) {
+            //startActivity(new Intent(HomeActivity.this, HowItWorksActivity.class));
+            startActivity(new Intent(HomeActivity.this, AdsActivity.class));
         }
         if (id == R.id.nav_trans) {
             startActivity(new Intent(HomeActivity.this, CampaignTransactionActivity.class));
@@ -591,59 +614,109 @@ public class HomeActivity extends AppCompatActivity
         db.collection("users").document(user.getEmail()).collection("user-data").document("settings").get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                if (task.getResult() != null) {
-                    Map<String, Object> snapshot = task.getResult().getData();
-                    if (snapshot != null) {
-                        isCampaignExists = true;
-                        String currentTitle = String.valueOf(snapshot.get("current_campaign"));
-                        db.collection("campaigns").document(currentTitle).addSnapshotListener(new EventListener<DocumentSnapshot>() {
-                            @Override
-                            public void onEvent(@javax.annotation.Nullable DocumentSnapshot documentSnapshot, @javax.annotation.Nullable FirebaseFirestoreException e) {
-                                if (documentSnapshot != null) {
-                                    current_campaign = documentSnapshot.toObject(CampaignInformation.class);
+                if(task.isSuccessful()) {
+                    if (task.getResult() != null) {
+                        Map<String, Object> snapshot = task.getResult().getData();
+                        if (snapshot != null) {
+                            isCampaignExists = true;
+                            String currentTitle = String.valueOf(snapshot.get("current_campaign"));
+                            db.collection("campaigns").document(currentTitle).addSnapshotListener(new EventListener<DocumentSnapshot>() {
+                                @Override
+                                public void onEvent(@javax.annotation.Nullable DocumentSnapshot documentSnapshot, @javax.annotation.Nullable FirebaseFirestoreException e) {
+                                    if (documentSnapshot != null) {
+                                        current_campaign = documentSnapshot.toObject(CampaignInformation.class);
+                                        updateViews();
+                                    }
+                                }
+                            });
+
+                            db.collection("campaigns").whereEqualTo("email", user.getEmail()).get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                                @Override
+                                public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                                    if (task.getResult().getDocuments().isEmpty() || task.getResult() == null) {
+                                        total_cam_count = "0";
+                                    } else {
+                                        total_cam_count = "" + task.getResult().getDocuments().size();
+                                    }
                                     updateViews();
                                 }
-                            }
-                        });
+                            });
 
-                        db.collection("campaigns").whereEqualTo("email", user.getEmail()).get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                            @Override
-                            public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                                if (task.getResult().getDocuments().isEmpty() || task.getResult() == null) {
-                                    total_cam_count = "0";
-                                } else {
-                                    total_cam_count = "" + task.getResult().getDocuments().size();
+                            db.collection("campaigns").whereEqualTo("email", user.getEmail()).whereEqualTo("status", true).get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                                @Override
+                                public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                                    if (task.getResult().getDocuments().isEmpty() || task.getResult() == null) {
+                                        total_active_cam_count = "0";
+                                    } else {
+                                        total_active_cam_count = "" + task.getResult().getDocuments().size();
+                                    }
+                                    updateViews();
                                 }
-                                updateViews();
-                            }
-                        });
+                            });
 
-                        db.collection("campaigns").whereEqualTo("email", user.getEmail()).whereEqualTo("status", true).get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                            @Override
-                            public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                                if (task.getResult().getDocuments().isEmpty() || task.getResult() == null) {
-                                    total_active_cam_count = "0";
-                                } else {
-                                    total_active_cam_count = "" + task.getResult().getDocuments().size();
+                            db.collection("campaigns").whereEqualTo("email", user.getEmail()).whereEqualTo("status", false).get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                                @Override
+                                public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                                    if (task.getResult().getDocuments().isEmpty() || task.getResult() == null) {
+                                        total_inactive_cam_count = "0";
+                                    } else {
+                                        total_inactive_cam_count = "" + task.getResult().getDocuments().size();
+                                    }
+                                    updateViews();
                                 }
-                                updateViews();
-                            }
-                        });
-
-                        db.collection("campaigns").whereEqualTo("email", user.getEmail()).whereEqualTo("status", false).get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                            @Override
-                            public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                                if (task.getResult().getDocuments().isEmpty() || task.getResult() == null) {
-                                    total_inactive_cam_count = "0";
-                                } else {
-                                    total_inactive_cam_count = "" + task.getResult().getDocuments().size();
-                                }
-                                updateViews();
-                            }
-                        });
+                            });
+                        }
                     }
                 }
             }
         });
+    }
+
+    @Override
+    public void setCurrentAd(String AdId, String adImage, String AdTitle, String AdType, String AdLink) {
+        adTextView.setText(AdTitle);
+        if (adImage.toLowerCase().contains(".gif")) {
+            try {
+                Glide.with(HomeActivity.this) //GifDrawable drawable =
+                        .asGif()
+                        .load(adImage).into(adImageView);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } else {
+            try {
+                Glide.with(HomeActivity.this)//Bitmap bitmap =
+                        .asBitmap()
+                        .load(adImage).into(adImageView);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+//        adImageView.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                onImageAdClicked(AdId, AdType, AdLink);
+//            }
+//        });
+    }
+
+    @Override
+    public void onImageAdClicked(String AdId, String AdType, String AdLink) {
+        if (AdType.contentEquals("App Install")) {
+            if (!campaignData.getClicked(AdLink)) {
+                campaignData.setClicked(true, AdLink);
+                adUtils.updateCampaignData(false, AdId, "clicks_number", 1);
+            }
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(AdLink));
+            startActivity(intent);
+        } else if (AdType.contentEquals("Click")) {
+            if (!campaignData.getClicked(AdLink)) {
+                campaignData.setClicked(true, AdLink);
+                adUtils.updateCampaignData(true, AdId, "clicks_number", 1);
+            }
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(AdLink));
+            startActivity(intent);
+        }
     }
 }
